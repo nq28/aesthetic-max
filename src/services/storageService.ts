@@ -223,6 +223,19 @@ export const storageService = {
     return newItem;
   },
 
+  updateFoodItem: (id: string, updated: Partial<FoodItem>): FoodItem | null => {
+    const all = storageService.getFoodItems();
+    const index = all.findIndex(i => i.id === id);
+    if (index === -1) return null;
+    const newItem: FoodItem = {
+      ...all[index],
+      ...updated
+    };
+    all[index] = newItem;
+    safeSetItem(KEYS.FOOD_ITEMS, JSON.stringify(all));
+    return newItem;
+  },
+
   deleteFoodItem: (id: string): void => {
     const all = storageService.getFoodItems();
     const updated = all.filter(i => i.id !== id);

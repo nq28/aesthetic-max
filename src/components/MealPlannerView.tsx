@@ -21,7 +21,9 @@ import {
   CheckSquare,
   Square,
   RefreshCw,
-  Coins
+  Coins,
+  Pencil,
+  X
 } from 'lucide-react';
 
 interface MealPlannerViewProps {
@@ -71,6 +73,54 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
   const [expandedMealId, setExpandedMealId] = useState<string | null>(null);
   const [copiedMsg, setCopiedMsg] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Edit Planned Meal state
+  const [editingMeal, setEditingMeal] = useState<PlannedMeal | null>(null);
+  const [editMealName, setEditMealName] = useState<string>('');
+  const [editMealCalories, setEditMealCalories] = useState<number>(0);
+  const [editMealServing, setEditMealServing] = useState<string>('');
+  const [editMealProtein, setEditMealProtein] = useState<number>(0);
+  const [editMealCarbs, setEditMealCarbs] = useState<number>(0);
+  const [editMealFat, setEditMealFat] = useState<number>(0);
+  const [editMealSodium, setEditMealSodium] = useState<number>(0);
+  const [editMealPotassium, setEditMealPotassium] = useState<number>(0);
+  const [editMealCost, setEditMealCost] = useState<number>(25000);
+
+  const openEditMealModal = (meal: PlannedMeal) => {
+    setEditingMeal(meal);
+    setEditMealName(meal.name);
+    setEditMealCalories(meal.calories);
+    setEditMealServing(meal.servingSize || '1 phần');
+    setEditMealProtein(meal.protein);
+    setEditMealCarbs(meal.carbs);
+    setEditMealFat(meal.fat);
+    setEditMealSodium(meal.sodium);
+    setEditMealPotassium(meal.potassium);
+    setEditMealCost(meal.estimatedCostVnd || 25000);
+  };
+
+  const handleSaveEditedMeal = () => {
+    if (!editingMeal) return;
+    const updatedMeal: PlannedMeal = {
+      ...editingMeal,
+      name: editMealName.trim() || editingMeal.name,
+      calories: Math.max(0, editMealCalories),
+      servingSize: editMealServing,
+      protein: Math.max(0, editMealProtein),
+      carbs: Math.max(0, editMealCarbs),
+      fat: Math.max(0, editMealFat),
+      sodium: Math.max(0, editMealSodium),
+      potassium: Math.max(0, editMealPotassium),
+      estimatedCostVnd: Math.max(0, editMealCost)
+    };
+    const updatedPlan = storageService.replaceMealInPlan(updatedMeal);
+    if (updatedPlan) {
+      setMealPlan(updatedPlan);
+    }
+    setToastMsg(`✏️ Đã cập nhật calo & bữa ăn "${updatedMeal.name}"!`);
+    setTimeout(() => setToastMsg(null), 3000);
+    setEditingMeal(null);
+  };
 
   // Auto-generate if today doesn't have a plan yet
   useEffect(() => {
@@ -560,10 +610,18 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     </span>
                   </div>
 
-                  <div className="text-right">
-                    <span className="text-lg font-black text-white">{meal.calories}</span>
-                    <span className="text-xs text-slate-400 ml-1">kcal</span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => openEditMealModal(meal)}
+                    className="text-right flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-950/70 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/50 transition group"
+                    title="Chạm để sửa calo"
+                  >
+                    <div>
+                      <span className="text-lg font-black text-white group-hover:text-emerald-400">{meal.calories}</span>
+                      <span className="text-xs text-slate-400 ml-1">kcal</span>
+                    </div>
+                    <Pencil className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400" />
+                  </button>
                 </div>
 
                 {/* Meal Name & Description */}
@@ -639,7 +697,17 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                   </button>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => openEditMealModal(meal)}
+                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 text-xs font-semibold rounded-xl flex items-center gap-1 transition border border-slate-700"
+                      title="Sửa calo & thông tin bữa ăn"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Sửa calo</span>
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => handleSwapMeal(meal)}
@@ -647,7 +715,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                       className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition border border-slate-700"
                     >
                       <RotateCw className={`w-3 h-3 ${isSwapping ? 'animate-spin text-emerald-400' : ''}`} />
-                      <span>{isSwapping ? 'Đang đổi...' : 'Đổi món này'}</span>
+                      <span>{isSwapping ? 'Đang đổi...' : 'Đổi món'}</span>
                     </button>
 
                     <button
@@ -661,7 +729,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                       }`}
                     >
                       <Check className="w-3.5 h-3.5" />
-                      <span>{meal.logged ? 'Đã ăn' : 'Nạp vào nhật ký'}</span>
+                      <span>{meal.logged ? 'Đã ăn' : 'Nạp'}</span>
                     </button>
                   </div>
                 </div>
@@ -767,6 +835,190 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
               Chưa có danh sách đi chợ. Hãy bấm "Tạo / Đổi thực đơn" để sinh danh sách tự động!
             </div>
           )}
+        </div>
+      )}
+
+      {/* Modal: Edit Planned Meal & Calories */}
+      {editingMeal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Pencil className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-sm font-bold text-white uppercase tracking-wide">
+                  Chỉnh Sửa Calo • {editingMeal.mealType === 'breakfast' ? 'Bữa Sáng' : editingMeal.mealType === 'lunch' ? 'Bữa Trưa' : editingMeal.mealType === 'dinner' ? 'Bữa Tối' : 'Bữa Phụ'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingMeal(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 font-medium mb-1">Tên món ăn trong thực đơn:</label>
+                <input
+                  type="text"
+                  value={editMealName}
+                  onChange={(e) => setEditMealName(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              {/* Calories Editor with quick buttons */}
+              <div className="bg-slate-950/80 p-3 rounded-xl border border-emerald-500/30">
+                <label className="block text-emerald-400 font-bold mb-1.5 flex items-center gap-1.5">
+                  <Flame className="w-4 h-4 text-emerald-400" />
+                  <span>Lượng Calories (Tự do chỉnh sửa):</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditMealCalories(prev => Math.max(0, prev - 50))}
+                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    title="Giảm 50 calo"
+                  >
+                    -50
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditMealCalories(prev => Math.max(0, prev - 10))}
+                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    title="Giảm 10 calo"
+                  >
+                    -10
+                  </button>
+                  <input
+                    type="number"
+                    min="0"
+                    max="9999"
+                    value={editMealCalories}
+                    onChange={(e) => setEditMealCalories(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="flex-1 text-center font-black text-emerald-400 text-xl py-1 bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setEditMealCalories(prev => prev + 10)}
+                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    title="Tăng 10 calo"
+                  >
+                    +10
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditMealCalories(prev => prev + 50)}
+                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    title="Tăng 50 calo"
+                  >
+                    +50
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-400 font-medium mb-1">Khẩu phần:</label>
+                  <input
+                    type="text"
+                    value={editMealServing}
+                    onChange={(e) => setEditMealServing(e.target.value)}
+                    placeholder="1 đĩa, 200g..."
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-medium mb-1">Ước tính giá (VNĐ):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value={editMealCost}
+                    onChange={(e) => setEditMealCost(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-amber-400 font-medium text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              {/* Macros */}
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Protein (g):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editMealProtein}
+                    onChange={(e) => setEditMealProtein(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-emerald-400 font-semibold text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Carbs (g):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editMealCarbs}
+                    onChange={(e) => setEditMealCarbs(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-amber-400 font-semibold text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Fat (g):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editMealFat}
+                    onChange={(e) => setEditMealFat(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-rose-400 font-semibold text-xs focus:outline-none focus:border-rose-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Kali (mg - xả nước):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editMealPotassium}
+                    onChange={(e) => setEditMealPotassium(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-cyan-400 font-semibold text-xs focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Muối/Natri (mg):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editMealSodium}
+                    onChange={(e) => setEditMealSodium(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 font-semibold text-xs focus:outline-none focus:border-slate-600"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setEditingMeal(null)}
+                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEditedMeal}
+                className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-lg shadow-emerald-500/20"
+              >
+                <Check className="w-4 h-4" />
+                <span>Lưu & Cập Nhật Tổng</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

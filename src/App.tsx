@@ -130,6 +130,11 @@ export const App: React.FC = () => {
     setTodayFoodItems(prev => [newItem, ...prev]);
   };
 
+  // Update existing food item
+  const handleFoodUpdated = (updatedItem: FoodItem) => {
+    setTodayFoodItems(prev => prev.map(i => i.id === updatedItem.id ? updatedItem : i));
+  };
+
   // Delete food item
   const handleFoodDeleted = (id: string) => {
     storageService.deleteFoodItem(id);
@@ -252,6 +257,7 @@ export const App: React.FC = () => {
                   nutrients={nutrients}
                   onNutrientsUpdate={setNutrients}
                   onFoodAdded={handleFoodAdded}
+                  onFoodUpdated={handleFoodUpdated}
                   todayFoodItems={todayFoodItems}
                   onFoodDeleted={handleFoodDeleted}
                   currentPlan={currentPlan}

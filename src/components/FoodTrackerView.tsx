@@ -16,7 +16,8 @@ import {
   Info, 
   X,
   Droplet,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Pencil
 } from 'lucide-react';
 
 interface FoodTrackerViewProps {
@@ -24,6 +25,7 @@ interface FoodTrackerViewProps {
   nutrients: NutrientDefinition[];
   onNutrientsUpdate: (updated: NutrientDefinition[]) => void;
   onFoodAdded: (item: FoodItem) => void;
+  onFoodUpdated?: (item: FoodItem) => void;
   todayFoodItems: FoodItem[];
   onFoodDeleted: (id: string) => void;
   currentPlan?: SmartPlan | null;
@@ -34,6 +36,7 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
   nutrients,
   onNutrientsUpdate,
   onFoodAdded,
+  onFoodUpdated,
   todayFoodItems,
   onFoodDeleted,
   currentPlan
@@ -44,6 +47,48 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [scanResult, setScanResult] = useState<Omit<FoodItem, 'id' | 'timestamp'> | null>(null);
+
+  // Edit Logged Food Item Modal state
+  const [editingFoodItem, setEditingFoodItem] = useState<FoodItem | null>(null);
+  const [editFormName, setEditFormName] = useState<string>('');
+  const [editFormCalories, setEditFormCalories] = useState<number>(0);
+  const [editFormServing, setEditFormServing] = useState<string>('');
+  const [editFormProtein, setEditFormProtein] = useState<number>(0);
+  const [editFormCarbs, setEditFormCarbs] = useState<number>(0);
+  const [editFormFat, setEditFormFat] = useState<number>(0);
+  const [editFormSodium, setEditFormSodium] = useState<number>(0);
+
+  const openEditModal = (item: FoodItem) => {
+    setEditingFoodItem(item);
+    setEditFormName(item.name);
+    setEditFormCalories(item.calories);
+    setEditFormServing(item.servingSize || '1 phần');
+    setEditFormProtein(item.nutrients?.protein || 0);
+    setEditFormCarbs(item.nutrients?.carbs || 0);
+    setEditFormFat(item.nutrients?.fat || 0);
+    setEditFormSodium(item.nutrients?.sodium || 0);
+  };
+
+  const handleSaveEditedFood = () => {
+    if (!editingFoodItem) return;
+    const updatedNutrients = {
+      ...editingFoodItem.nutrients,
+      protein: editFormProtein,
+      carbs: editFormCarbs,
+      fat: editFormFat,
+      sodium: editFormSodium
+    };
+    const updated = storageService.updateFoodItem(editingFoodItem.id, {
+      name: editFormName.trim() || editingFoodItem.name,
+      calories: Math.max(0, editFormCalories),
+      servingSize: editFormServing,
+      nutrients: updatedNutrients
+    });
+    if (updated) {
+      onFoodUpdated?.(updated);
+    }
+    setEditingFoodItem(null);
+  };
 
   // New Custom Nutrient Modal state
   const [showAddNutrientModal, setShowAddNutrientModal] = useState<boolean>(false);
@@ -337,15 +382,64 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
       {/* Analysis Result Card */}
       {scanResult && (
         <div className="bg-slate-900/95 border-2 border-emerald-500/50 rounded-2xl p-5 space-y-4 shadow-2xl animate-fade-in">
-          <div className="flex justify-between items-start">
-            <div>
-              <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">KẾT QUẢ PHÂN TÍCH TỪ AI</div>
-              <h3 className="text-lg font-bold text-white mt-0.5">{scanResult.name}</h3>
-              <p className="text-xs text-slate-400">{scanResult.servingSize}</p>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800">
+            <div className="flex-1 w-full sm:w-auto">
+              <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 text-emerald-400" />
+                <span>KẾT QUẢ PHÂN TÍCH TỪ AI</span>
+                <span className="text-[10px] text-slate-400 font-normal">(Chạm để sửa tên & calo)</span>
+              </div>
+              <input
+                type="text"
+                value={scanResult.name}
+                onChange={(e) => setScanResult(prev => prev ? { ...prev, name: e.target.value } : null)}
+                placeholder="Tên món ăn"
+                className="text-base sm:text-lg font-bold text-white mt-1 bg-transparent border-b border-transparent hover:border-slate-700 focus:border-emerald-500 focus:outline-none w-full"
+              />
+              <input
+                type="text"
+                value={scanResult.servingSize || ''}
+                onChange={(e) => setScanResult(prev => prev ? { ...prev, servingSize: e.target.value } : null)}
+                placeholder="Khẩu phần (VD: 1 tô, 200g...)"
+                className="text-xs text-slate-400 bg-transparent border-b border-transparent hover:border-slate-800 focus:border-slate-600 focus:outline-none mt-0.5 w-full"
+              />
             </div>
-            <div className="text-right">
-              <span className="text-2xl font-black text-emerald-400">{scanResult.calories}</span>
-              <span className="text-xs text-slate-400 ml-1">kcal</span>
+
+            <div className="flex flex-col items-start sm:items-end shrink-0">
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <Flame className="w-3 h-3 text-emerald-400" />
+                <span>Calo Tự Do Chỉnh Sửa:</span>
+              </span>
+              <div className="flex items-center gap-1 bg-slate-900 border border-emerald-500/50 rounded-xl px-2 py-1 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => setScanResult(prev => prev ? { ...prev, calories: Math.max(0, prev.calories - 50) } : null)}
+                  className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-90 text-xs font-bold text-slate-300 flex items-center justify-center transition"
+                  title="Giảm 50 calo"
+                >
+                  -50
+                </button>
+                <input
+                  type="number"
+                  min="0"
+                  max="9999"
+                  value={scanResult.calories}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    setScanResult(prev => prev ? { ...prev, calories: Math.max(0, val) } : null);
+                  }}
+                  className="w-16 text-center font-black text-emerald-400 text-xl bg-transparent focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setScanResult(prev => prev ? { ...prev, calories: prev.calories + 50 } : null)}
+                  className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-90 text-xs font-bold text-slate-300 flex items-center justify-center transition"
+                  title="Tăng 50 calo"
+                >
+                  +50
+                </button>
+                <span className="text-xs text-slate-400 font-semibold pr-1">kcal</span>
+              </div>
             </div>
           </div>
 
@@ -441,12 +535,21 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <span className="text-sm font-black text-emerald-400">{item.calories} <span className="text-[10px] text-slate-400 font-normal">kcal</span></span>
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(item)}
+                    className="p-1.5 text-slate-400 hover:text-emerald-400 rounded-lg hover:bg-slate-800 transition"
+                    title="Chỉnh sửa calo & món ăn"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
                   <button
                     type="button"
                     onClick={() => onFoodDeleted(item.id)}
                     className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition"
+                    title="Xóa món"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -550,6 +653,162 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Logged Food Item & Calories */}
+      {editingFoodItem && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl relative">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Pencil className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-sm font-bold text-white uppercase tracking-wide">Chỉnh Sửa Calo & Bữa Ăn</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingFoodItem(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 font-medium mb-1">Tên món ăn:</label>
+                <input
+                  type="text"
+                  value={editFormName}
+                  onChange={(e) => setEditFormName(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              {/* Calories Editor with quick adjust buttons */}
+              <div className="bg-slate-950/80 p-3 rounded-xl border border-emerald-500/30">
+                <label className="block text-emerald-400 font-bold mb-1.5 flex items-center gap-1.5">
+                  <Flame className="w-4 h-4 text-emerald-400" />
+                  <span>Lượng Calories (Tự do chỉnh sửa):</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditFormCalories(prev => Math.max(0, prev - 50))}
+                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    title="Giảm 50 calo"
+                  >
+                    -50
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditFormCalories(prev => Math.max(0, prev - 10))}
+                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    title="Giảm 10 calo"
+                  >
+                    -10
+                  </button>
+                  <input
+                    type="number"
+                    min="0"
+                    max="9999"
+                    value={editFormCalories}
+                    onChange={(e) => setEditFormCalories(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="flex-1 text-center font-black text-emerald-400 text-xl py-1 bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setEditFormCalories(prev => prev + 10)}
+                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    title="Tăng 10 calo"
+                  >
+                    +10
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditFormCalories(prev => prev + 50)}
+                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    title="Tăng 50 calo"
+                  >
+                    +50
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-medium mb-1">Khẩu phần / Đơn vị:</label>
+                <input
+                  type="text"
+                  value={editFormServing}
+                  onChange={(e) => setEditFormServing(e.target.value)}
+                  placeholder="1 tô, 1 đĩa, 200g..."
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              {/* Macros */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Protein (Đạm - g):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editFormProtein}
+                    onChange={(e) => setEditFormProtein(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-emerald-400 font-semibold text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Carbs (Tinh bột - g):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editFormCarbs}
+                    onChange={(e) => setEditFormCarbs(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-amber-400 font-semibold text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Fat (Chất béo - g):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editFormFat}
+                    onChange={(e) => setEditFormFat(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-rose-400 font-semibold text-xs focus:outline-none focus:border-rose-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[11px] mb-1">Natri / Muối (mg):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editFormSodium}
+                    onChange={(e) => setEditFormSodium(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-cyan-400 font-semibold text-xs focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setEditingFoodItem(null)}
+                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEditedFood}
+                className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-lg shadow-emerald-500/20"
+              >
+                <Check className="w-4 h-4" />
+                <span>Lưu Thay Đổi</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
