@@ -487,9 +487,10 @@ All explanatory text must be in natural, empowering Vietnamese. Return only vali
       currentPlan: SmartPlan | null;
       todayFoodItems: FoodItem[];
       latestLooksmax: LooksmaxAnalysis | null;
+      dailyMealPlan?: DailyMealPlan | null;
     },
     imageBase64?: string
-  ): Promise<{ text: string; detectedMeals?: DetectedMealItem[] }> => {
+  ): Promise<{ text: string; detectedMeals?: DetectedMealItem[]; suggestedMealPlan?: DailyMealPlan }> => {
     const apiKey = storageService.getApiKey();
     if (!apiKey) {
       throw new Error('Chưa cấu hình Gemini API Key. Vui lòng nhập API Key để chat với Coach!');
@@ -515,6 +516,8 @@ USER CONTEXT:
 - Calories consumed today: ${totalCaloriesToday} / ${context.currentPlan?.calorieTarget || context.userProfile.dailyCalorieTarget} kcal
 - Debloat Target: Sodium < ${context.currentPlan?.sodiumTarget || 1600}mg, Potassium > ${context.currentPlan?.potassiumTarget || 3800}mg
 - Active Plan: ${context.currentPlan?.planName || 'Chưa kích hoạt'}
+- Active Daily Meal Plan: ${context.dailyMealPlan ? `${context.dailyMealPlan.meals.map(m => `[${m.mealType}: ${m.name} (~${m.calories}kcal, ~${(m.estimatedCostVnd || 25000).toLocaleString('vi-VN')}đ)]`).join(', ')} (Tổng: ${context.dailyMealPlan.totalCalories} kcal, Ngân sách: ${(context.dailyMealPlan.totalEstimatedCostVnd || 85000).toLocaleString('vi-VN')}đ)` : 'Chưa có thực đơn hôm nay'}
+- User Food Budget: ${context.userProfile.foodBudgetPerDayVnd && context.userProfile.foodBudgetPerDayVnd > 0 ? `${context.userProfile.foodBudgetPerDayVnd.toLocaleString('vi-VN')} VNĐ/ngày` : 'Tiết kiệm, bình dân hợp lý'}
 ${context.latestLooksmax ? `- Looksmax Evaluation: PSL ${context.latestLooksmax.pslScore} (${context.latestLooksmax.pslTier}), Appeal ${context.latestLooksmax.appealScore} (${context.latestLooksmax.appealTier})` : ''}
 
 TONE & BEHAVIOR:
@@ -522,40 +525,36 @@ TONE & BEHAVIOR:
 - Answer user questions regarding what they ate, what to eat, workout routines, gym splits, posture, Mewing, Debloat.
 - If the user uploaded an image: analyze the image (food plate, physique check, gym posture, or progress) with high precision.
 
-CRITICAL FEATURE - MEAL DETECTION & TRACKER LOGGING:
-If the user mentions food they ate, or asks about calories/nutrients of a meal, or uploads a photo of food:
-1. Provide your insightful coaching commentary, advice, and tips in Vietnamese.
+CRITICAL FEATURE - MEAL DETECTION, TRACKER LOGGING & DAILY MEAL PLAN INTEGRATION:
+When the user mentions food they ate, OR asks you what to eat, OR asks you to change/swap a meal, OR asks you to design a menu/thực đơn (with or without budget):
+1. Provide your charismatic coaching commentary, advice, and tips in Vietnamese.
 2. At the very end of your response, output a structured JSON block inside triple backticks with tag \`\`\`json:meal_tracker:
 \`\`\`json:meal_tracker
 {
   "detectedMeals": [
     {
-      "name": "Tên món ăn cụ thể (ví dụ: Phở bò tái nạm + 1 trứng chần)",
+      "name": "Tên món ăn cụ thể",
       "mealType": "breakfast",
-      "calories": 650,
-      "servingSize": "1 tô lớn (khoảng 350g)",
+      "calories": 550,
+      "servingSize": "1 đĩa vừa",
+      "estimatedCostVnd": 25000,
       "nutrients": {
-        "protein": 38,
-        "carbs": 65,
-        "fat": 16,
-        "fiber": 3,
-        "sugar": 4,
-        "sodium": 1400,
-        "potassium": 650,
-        "calcium": 60,
-        "vitamin_d3": 20,
-        "zinc": 4.5,
-        "magnesium": 45,
-        "iron": 3.8,
-        "caffeine": 0
+        "protein": 35,
+        "carbs": 60,
+        "fat": 15,
+        "sodium": 650,
+        "potassium": 850
       },
-      "aiNotes": "Nhận xét ngắn về dinh dưỡng, tác động debloat/jawline và tăng cơ"
+      "aiNotes": "Nhận xét ngắn về dinh dưỡng, debloat và tăng cơ",
+      "prepTimeMinutes": 15,
+      "ingredients": ["150g ức gà", "rau cải", "cơm trắng"]
     }
-  ]
+  ],
+  "suggestedMealPlan": null
 }
 \`\`\`
-Note: "mealType" must be one of: "breakfast", "lunch", "dinner", "snack".
-If NO meals or foods were eaten, mentioned, or shown, DO NOT output the \`\`\`json:meal_tracker block.`;
+Note: If user asks for an entire daily menu (4 meals), you can provide "suggestedMealPlan" matching DailyMealPlan structure with 4 meals ("meals": [breakfast, lunch, dinner, snack]) and "totalEstimatedCostVnd".
+If NO meals or foods were eaten, mentioned, or asked, DO NOT output the \`\`\`json:meal_tracker block.`;
 
     const contents: any[] = [];
     contents.push({
@@ -612,6 +611,7 @@ If NO meals or foods were eaten, mentioned, or shown, DO NOT output the \`\`\`js
 
     const rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     let detectedMeals: DetectedMealItem[] | undefined;
+    let suggestedMealPlan: DailyMealPlan | undefined;
     let cleanText = rawOutput;
 
     const mealMatch = rawOutput.match(/```json:meal_tracker\s*([\s\S]*?)\s*```/);
@@ -621,15 +621,41 @@ If NO meals or foods were eaten, mentioned, or shown, DO NOT output the \`\`\`js
         if (parsed.detectedMeals && Array.isArray(parsed.detectedMeals)) {
           detectedMeals = parsed.detectedMeals;
         }
+        if (parsed.suggestedMealPlan && parsed.suggestedMealPlan.meals && Array.isArray(parsed.suggestedMealPlan.meals)) {
+          const todayStr = new Date().toISOString().slice(0, 10);
+          suggestedMealPlan = {
+            id: 'plan_coach_' + Date.now(),
+            date: todayStr,
+            dietType: parsed.suggestedMealPlan.dietType || 'vietnamese_home',
+            targetCalories: parsed.suggestedMealPlan.targetCalories || context.userProfile.dailyCalorieTarget,
+            totalCalories: parsed.suggestedMealPlan.totalCalories || 1800,
+            totalProtein: parsed.suggestedMealPlan.totalProtein || 130,
+            totalCarbs: parsed.suggestedMealPlan.totalCarbs || 180,
+            totalFat: parsed.suggestedMealPlan.totalFat || 50,
+            totalSodium: parsed.suggestedMealPlan.totalSodium || 1600,
+            totalPotassium: parsed.suggestedMealPlan.totalPotassium || 3600,
+            debloatScore: parsed.suggestedMealPlan.debloatScore || 'Xuất sắc',
+            debloatRatio: parsed.suggestedMealPlan.debloatRatio || 2.2,
+            totalEstimatedCostVnd: parsed.suggestedMealPlan.totalEstimatedCostVnd || 80000,
+            aiChefAdvice: parsed.suggestedMealPlan.aiChefAdvice || 'Thực đơn tối ưu calo và kinh phí từ Coach Max.',
+            meals: parsed.suggestedMealPlan.meals.map((m: any, idx: number) => ({
+              ...m,
+              id: m.id || `coach_meal_${idx}_${Date.now()}`,
+              logged: false
+            })),
+            groceryList: parsed.suggestedMealPlan.groceryList || []
+          };
+        }
       } catch (e) {
-        console.warn('Could not parse detectedMeals JSON from Coach:', e);
+        console.warn('Could not parse detectedMeals/suggestedMealPlan JSON from Coach:', e);
       }
       cleanText = rawOutput.replace(/```json:meal_tracker\s*[\s\S]*?\s*```/, '').trim();
     }
 
     return {
       text: cleanText || 'Coach chưa nhận được phản hồi, bạn thử hỏi lại nhé!',
-      detectedMeals
+      detectedMeals,
+      suggestedMealPlan
     };
   },
 
@@ -693,7 +719,8 @@ If NO meals or foods were eaten, mentioned, or shown, DO NOT output the \`\`\`js
   generateDailyMealPlan: async (
     userProfile: UserProfile,
     currentPlan: SmartPlan | null,
-    dietType: DietType = 'vietnamese_home'
+    dietType: DietType = 'vietnamese_home',
+    dailyBudgetVnd?: number
   ): Promise<DailyMealPlan> => {
     const apiKey = storageService.getApiKey();
     if (!apiKey) {
@@ -713,6 +740,10 @@ If NO meals or foods were eaten, mentioned, or shown, DO NOT output the \`\`\`js
       high_protein_veg: 'Món chay giàu đạm (đậu phụ non, nấm đùi gà, đậu nành Edamame, đậu lăng, các loại hạt dinh dưỡng, sữa đậu nành không đường).'
     };
 
+    const budgetPrompt = dailyBudgetVnd && dailyBudgetVnd > 0
+      ? `- Ngân sách ăn uống mục tiêu: ~${dailyBudgetVnd.toLocaleString('vi-VN')} VNĐ/ngày. Hãy chọn nguyên liệu tươi ngon nhưng kinh tế (như trứng gà, ức gà, cá đồng, đậu phụ, rau muống, rau ngót, chuối, khoai) sao cho "totalEstimatedCostVnd" không vượt quá ngân sách này.`
+      : '- Ngân sách: Bình dân, kinh tế, hợp lý với giá chợ/siêu thị Việt Nam.';
+
     const prompt = `You are a certified executive sports nutritionist and chef specializing in Vietnamese physique and aesthetic looksmaxxing nutrition.
 Create a complete, delicious 1-day meal plan tailored to this user:
 - Goal: Body Fat ${userProfile.targetBodyFat}%, Aesthetic: ${userProfile.aestheticStyle === 'asian_pretty_boy' ? 'Asian Pretty Boy (Sharp V-line jaw, clean skin, de-bloat priority)' : 'Western PSL & Muscle Density'}
@@ -721,13 +752,14 @@ Create a complete, delicious 1-day meal plan tailored to this user:
 - Target Carbs: ${targetCarb}g
 - Target Fat: ${targetFat}g
 - Dietary Style: ${dietDescriptions[dietType]}
+${budgetPrompt}
 
 CRITICAL AESTHETIC & DEBLOAT RULES:
 1. Maximize Potassium (Target > 3,000mg/day) from natural sources (spinach, sweet potato, banana, mushrooms, avocado) to flush facial sodium retention.
 2. Moderate Sodium (< 1,800mg/day) to eliminate face puffiness and morning water retention.
 3. Include 4 structured meals: Breakfast (Bữa sáng), Lunch (Bữa trưa), Dinner (Bữa tối), and Snack (Bữa phụ).
-4. For each meal provide: realistic Vietnamese meal name, portion in grams or bowls/pieces, calories, protein, carbs, fat, sodium, potassium, prep time in minutes, key ingredients, and 2-3 quick cooking steps.
-5. Create a smart consolidated Grocery List grouped into 4 categories: 'Thịt, Cá & Trứng (Protein)', 'Rau, Củ & Trái Cây (Kali & Vi chất)', 'Tinh Bột & Các Loại Hạt', 'Gia Vị & Khác'.
+4. For each meal provide: realistic Vietnamese meal name, portion in grams or bowls/pieces, calories, protein, carbs, fat, sodium, potassium, prep time in minutes, estimated cost in VND ("estimatedCostVnd": number, e.g. 20000), key ingredients, and 2-3 quick cooking steps.
+5. Create a smart consolidated Grocery List grouped into 4 categories: 'Thịt, Cá & Trứng (Protein)', 'Rau, Củ & Trái Cây (Kali & Vi chất)', 'Tinh Bột & Các Loại Hạt', 'Gia Vị & Khác'. Each grocery item should have estimatedCostVnd.
 
 Return ONLY valid JSON matching this exact structure:
 {
@@ -737,6 +769,7 @@ Return ONLY valid JSON matching this exact structure:
   "totalFat": number,
   "totalSodium": number,
   "totalPotassium": number,
+  "totalEstimatedCostVnd": number,
   "debloatScore": "Xuất sắc",
   "debloatRatio": 2.2,
   "aiChefAdvice": string (1-2 sentences of encouraging aesthetic cooking tips in Vietnamese),
@@ -751,6 +784,7 @@ Return ONLY valid JSON matching this exact structure:
       "fat": number,
       "sodium": number,
       "potassium": number,
+      "estimatedCostVnd": number,
       "servingSize": string,
       "description": string,
       "prepTimeMinutes": number,
@@ -762,7 +796,7 @@ Return ONLY valid JSON matching this exact structure:
     {
       "category": string,
       "items": [
-        { "name": string, "amount": string, "checked": false }
+        { "name": string, "amount": string, "checked": false, "estimatedCostVnd": number }
       ]
     }
   ]
@@ -788,10 +822,12 @@ All names, descriptions, and instructions must be in natural, mouth-watering Vie
       date: todayStr,
       dietType,
       targetCalories: targetCal,
+      dailyBudgetVnd: dailyBudgetVnd,
       ...parsed,
       meals: (parsed.meals || []).map((m: any, idx: number) => ({
         ...m,
         id: m.id || `meal_${Date.now()}_${idx}`,
+        estimatedCostVnd: m.estimatedCostVnd || 25000,
         logged: false
       }))
     };
@@ -802,7 +838,8 @@ All names, descriptions, and instructions must be in natural, mouth-watering Vie
     userProfile: UserProfile,
     currentPlan: SmartPlan | null,
     mealToReplace: PlannedMeal,
-    dietType: DietType = 'vietnamese_home'
+    dietType: DietType = 'vietnamese_home',
+    budgetVnd?: number
   ): Promise<PlannedMeal> => {
     const apiKey = storageService.getApiKey();
     if (!apiKey) {
@@ -817,6 +854,7 @@ Recommend ONE alternative meal to replace this meal:
 - Target Protein: ~${mealToReplace.protein}g
 - Target Carbs: ~${mealToReplace.carbs}g
 - Target Fat: ~${mealToReplace.fat}g
+- Target Budget: ${budgetVnd ? `~${budgetVnd.toLocaleString('vi-VN')} VNĐ` : 'Tiết kiệm, bình dân'}
 - Diet Style: ${dietType}
 - Aesthetic requirement: High potassium, low sodium to avoid facial water retention.
 
@@ -829,6 +867,7 @@ Return ONLY raw JSON with:
   "fat": number,
   "sodium": number,
   "potassium": number,
+  "estimatedCostVnd": number,
   "servingSize": string,
   "description": string,
   "prepTimeMinutes": number,
@@ -853,6 +892,7 @@ No markdown, return strictly raw JSON.`;
       ...parsed,
       id: 'meal_swapped_' + Date.now(),
       mealType: mealToReplace.mealType,
+      estimatedCostVnd: parsed.estimatedCostVnd || 25000,
       logged: false
     };
   }

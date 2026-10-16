@@ -20,7 +20,8 @@ import {
   Share2,
   CheckSquare,
   Square,
-  RefreshCw
+  RefreshCw,
+  Coins
 } from 'lucide-react';
 
 interface MealPlannerViewProps {
@@ -38,6 +39,14 @@ const DIET_OPTIONS: { id: DietType; label: string; icon: string; desc: string }[
   { id: 'high_protein_veg', label: 'Chay Giàu Đạm', icon: '🌱', desc: 'Đậu phụ, nấm, hạt dinh dưỡng lành mạnh' }
 ];
 
+const BUDGET_OPTIONS = [
+  { value: 0, label: 'Tùy thích' },
+  { value: 50000, label: 'Dưới 50k (Sinh viên)' },
+  { value: 80000, label: '~80k (Tiết kiệm)' },
+  { value: 120000, label: '~120k (Tiêu chuẩn)' },
+  { value: 160000, label: '160k+ (Dồi dào GYM)' }
+];
+
 export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
   userProfile,
   currentPlan,
@@ -52,6 +61,10 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
     return mealPlan?.dietType || 'vietnamese_home';
   });
 
+  const [selectedBudget, setSelectedBudget] = useState<number>(() => {
+    return mealPlan?.dailyBudgetVnd ?? userProfile.foodBudgetPerDayVnd ?? 80000;
+  });
+
   const [activeTab, setActiveTab] = useState<'meals' | 'grocery'>('meals');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [swappingMealId, setSwappingMealId] = useState<string | null>(null);
@@ -63,15 +76,15 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
     if (!mealPlan || mealPlan.date !== today) {
-      handleGeneratePlan(selectedDiet);
+      handleGeneratePlan(selectedDiet, selectedBudget);
     }
   }, []);
 
   // Generate / Reroll Entire Daily Meal Plan
-  const handleGeneratePlan = async (dietToUse: DietType = selectedDiet) => {
+  const handleGeneratePlan = async (dietToUse: DietType = selectedDiet, budgetToUse: number = selectedBudget) => {
     setIsGenerating(true);
     try {
-      const plan = await geminiService.generateDailyMealPlan(userProfile, currentPlan, dietToUse);
+      const plan = await geminiService.generateDailyMealPlan(userProfile, currentPlan, dietToUse, budgetToUse);
       setMealPlan(plan);
       storageService.saveDailyMealPlan(plan);
       setToastMsg('✨ Đã tạo thực đơn mới chuẩn Aesthetic & Debloat thành công!');
@@ -92,7 +105,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
     if (!mealPlan) return;
     setSwappingMealId(mealToSwap.id);
     try {
-      const newMeal = await geminiService.swapSingleMeal(userProfile, currentPlan, mealToSwap, selectedDiet);
+      const newMeal = await geminiService.swapSingleMeal(userProfile, currentPlan, mealToSwap, selectedDiet, mealToSwap.estimatedCostVnd || 25000);
       
       const updatedMeals = mealPlan.meals.map(m => m.id === mealToSwap.id ? newMeal : m);
       
@@ -103,6 +116,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
       const totalFat = updatedMeals.reduce((acc, m) => acc + m.fat, 0);
       const totalSodium = updatedMeals.reduce((acc, m) => acc + m.sodium, 0);
       const totalPotassium = updatedMeals.reduce((acc, m) => acc + m.potassium, 0);
+      const totalEstimatedCostVnd = updatedMeals.reduce((acc, m) => acc + (m.estimatedCostVnd || 0), 0);
       const debloatRatio = Number((totalPotassium / (totalSodium || 1)).toFixed(1));
 
       const updatedPlan: DailyMealPlan = {
@@ -114,6 +128,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
         totalFat,
         totalSodium,
         totalPotassium,
+        totalEstimatedCostVnd,
         debloatRatio
       };
 
@@ -304,6 +319,44 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
             })}
           </div>
         </div>
+
+        {/* Budget Selector Pills */}
+        <div className="mt-3 pt-2.5 border-t border-slate-800/80">
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+              <Coins className="w-3.5 h-3.5 text-amber-400" />
+              <span>Ngân sách ăn uống dự kiến:</span>
+            </span>
+            {selectedBudget > 0 && (
+              <span className="text-[11px] font-bold text-amber-400">
+                Mục tiêu: ~{selectedBudget.toLocaleString('vi-VN')} đ/ngày
+              </span>
+            )}
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-800">
+            {BUDGET_OPTIONS.map((b) => {
+              const isSelected = selectedBudget === b.value;
+              return (
+                <button
+                  key={b.value}
+                  type="button"
+                  onClick={() => {
+                    setSelectedBudget(b.value);
+                    handleGeneratePlan(selectedDiet, b.value);
+                  }}
+                  disabled={isGenerating}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
+                    isSelected
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-sm shadow-amber-500/20'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <span>{b.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Toast Alert Feedback */}
@@ -413,6 +466,36 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                 </div>
               </div>
 
+              {/* Estimated Budget & Cost Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-xs">
+                <div className="flex items-center gap-2">
+                  <Coins className="w-4 h-4 text-amber-400 shrink-0" />
+                  <div>
+                    <span className="text-slate-400">Chi phí dự kiến cả ngày: </span>
+                    <span className="font-black text-amber-400">
+                      ~{(mealPlan.totalEstimatedCostVnd || 80000).toLocaleString('vi-VN')} đ
+                    </span>
+                    {selectedBudget > 0 && (
+                      <span className="text-slate-500 ml-1">
+                        / Ngân sách: {selectedBudget.toLocaleString('vi-VN')} đ
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {selectedBudget > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                    (mealPlan.totalEstimatedCostVnd || 80000) <= selectedBudget
+                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                  }`}>
+                    {(mealPlan.totalEstimatedCostVnd || 80000) <= selectedBudget
+                      ? '✓ Trong ngân sách'
+                      : 'Vượt nhẹ ngân sách'}
+                  </span>
+                )}
+              </div>
+
               {/* AI Chef Advice */}
               {mealPlan.aiChefAdvice && (
                 <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200/90 flex items-start gap-2.5">
@@ -463,13 +546,17 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
               >
                 {/* Header Row */}
                 <div className="flex justify-between items-start gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border bg-gradient-to-r ${mealColor}`}>
                       {mealLabel}
                     </span>
                     <span className="flex items-center gap-1 text-[11px] text-slate-400">
                       <Clock className="w-3 h-3 text-slate-500" />
                       {meal.prepTimeMinutes} phút
+                    </span>
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-400/90 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                      <Coins className="w-3 h-3 text-amber-400" />
+                      ~{(meal.estimatedCostVnd || 25000).toLocaleString('vi-VN')} đ
                     </span>
                   </div>
 
@@ -610,8 +697,8 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
             </button>
           </div>
 
-          {/* Progress Bar */}
-          <div className="space-y-1">
+          {/* Progress Bar & Estimated Basket Total */}
+          <div className="space-y-2">
             <div className="flex justify-between text-xs text-slate-400">
               <span>Tiến độ mua sắm:</span>
               <span className="font-bold text-emerald-400">{checkedGroceryItems} / {totalGroceryItems} món ({groceryProgressPercent}%)</span>
@@ -621,6 +708,16 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                 className="bg-emerald-500 h-full rounded-full transition-all duration-300"
                 style={{ width: `${groceryProgressPercent}%` }}
               ></div>
+            </div>
+
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs mt-1">
+              <div className="flex items-center gap-2">
+                <Coins className="w-4 h-4 text-amber-400" />
+                <span className="text-slate-300">Tổng tiền đi chợ dự kiến:</span>
+              </div>
+              <span className="font-bold text-amber-400">
+                ~{(mealPlan?.totalEstimatedCostVnd || 80000).toLocaleString('vi-VN')} đ
+              </span>
             </div>
           </div>
 
@@ -653,8 +750,11 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                       </span>
                     </div>
 
-                    <span className="text-[11px] font-semibold text-slate-400">
-                      {item.amount}
+                    <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                      <span>{item.amount}</span>
+                      {item.estimatedCostVnd && (
+                        <span className="text-amber-400/80 font-mono">~{item.estimatedCostVnd.toLocaleString('vi-VN')}đ</span>
+                      )}
                     </span>
                   </div>
                 ))}

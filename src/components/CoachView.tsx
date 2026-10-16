@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import confetti from 'canvas-confetti';
-import { UserProfile, SmartPlan, FoodItem, CoachMessage, DetectedMealItem } from '../types';
+import { UserProfile, SmartPlan, FoodItem, CoachMessage, DetectedMealItem, DailyMealPlan } from '../types';
 import { geminiService } from '../services/geminiService';
 import { storageService } from '../services/storageService';
 import { 
@@ -19,7 +19,10 @@ import {
   X,
   PlusCircle,
   Dumbbell,
-  Utensils
+  Utensils,
+  Coins,
+  RefreshCw,
+  ChefHat
 } from 'lucide-react';
 import { CoachCallModal } from './CoachCallModal';
 import { compressImageToThumbnail } from '../utils/imageUtils';
@@ -130,7 +133,8 @@ export const CoachView: React.FC<CoachViewProps> = ({
           userProfile,
           currentPlan,
           todayFoodItems,
-          latestLooksmax
+          latestLooksmax,
+          dailyMealPlan: storageService.getDailyMealPlan()
         },
         currentImage || undefined
       );
@@ -140,6 +144,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
         sender: 'coach',
         text: reply.text,
         detectedMeals: reply.detectedMeals,
+        suggestedMealPlan: reply.suggestedMealPlan,
         timestamp: Date.now()
       };
 
@@ -214,6 +219,69 @@ export const CoachView: React.FC<CoachViewProps> = ({
     }
   };
 
+  // Apply Single Meal directly to Active Daily Meal Plan
+  const handleApplyMealToDailyPlan = (messageId: string, mealIndex: number, meal: DetectedMealItem) => {
+    try {
+      const res = storageService.applyDetectedMealToPlan(meal);
+      if (!res) {
+        alert('Chưa có thực đơn hôm nay để thay thế. Vui lòng tạo thực đơn trong mục Ăn uống trước!');
+        return;
+      }
+
+      // Mark appliedToPlan in messages
+      const updated = messages.map(m => {
+        if (m.id === messageId && m.detectedMeals) {
+          const nextMeals = [...m.detectedMeals];
+          nextMeals[mealIndex] = { ...nextMeals[mealIndex], appliedToPlan: true };
+          return { ...m, detectedMeals: nextMeals };
+        }
+        return m;
+      });
+
+      setMessages(updated);
+      storageService.saveCoachMessages(updated);
+
+      const mealLabel = meal.mealType === 'breakfast' ? 'Sáng' : meal.mealType === 'lunch' ? 'Trưa' : meal.mealType === 'dinner' ? 'Tối' : 'Phụ';
+      setJustAppliedMealName(`Đã thay thế bữa ${mealLabel} bằng món "${meal.name}" trong Thực Đơn Hàng Ngày!`);
+      setTimeout(() => setJustAppliedMealName(null), 4500);
+
+      try {
+        confetti({ particleCount: 45, spread: 60, origin: { y: 0.8 } });
+      } catch {}
+    } catch (err: any) {
+      console.error('Lỗi thay thế món vào thực đơn:', err);
+      alert('Không thể cập nhật thực đơn: ' + err?.message);
+    }
+  };
+
+  // Apply Full Suggested Meal Plan to Active Daily Plan
+  const handleApplySuggestedMealPlan = (messageId: string, plan: DailyMealPlan) => {
+    try {
+      storageService.saveDailyMealPlan(plan);
+
+      // Mark suggestedPlanApplied in messages
+      const updated = messages.map(m => {
+        if (m.id === messageId) {
+          return { ...m, suggestedPlanApplied: true };
+        }
+        return m;
+      });
+
+      setMessages(updated);
+      storageService.saveCoachMessages(updated);
+
+      setJustAppliedMealName(`Đã áp dụng toàn bộ thực đơn 4 bữa (~${plan.totalCalories} kcal) từ Coach Max!`);
+      setTimeout(() => setJustAppliedMealName(null), 5000);
+
+      try {
+        confetti({ particleCount: 60, spread: 80, origin: { y: 0.7 } });
+      } catch {}
+    } catch (err: any) {
+      console.error('Lỗi áp dụng thực đơn từ Coach:', err);
+      alert('Không thể lưu thực đơn: ' + err?.message);
+    }
+  };
+
   const handleClearChat = () => {
     if (window.confirm('Bạn có muốn xóa toàn bộ lịch sử trò chuyện với Coach không?')) {
       storageService.clearCoachMessages();
@@ -229,11 +297,11 @@ export const CoachView: React.FC<CoachViewProps> = ({
   };
 
   const QUICK_QUESTIONS = [
+    'Lên cho tao thực đơn 4 bữa hôm nay ngân sách dưới 70k!',
+    'Trưa nay tao ngán ức gà, đổi món Việt khác cùng calo/macro giùm tao!',
     'Hôm nay tao ăn 1 bát phở bò tái nạm 1 trứng chần, log vào tracker giùm tao!',
-    'Hôm nay tao vừa tập ngực 4 hiệp Bench Press và 3 hiệp Dips, nên ăn gì?',
-    'Ăn gì để xả mặn debloat mặt lộ xương hàm nhanh nhất?',
-    'Tối ưu chiều cao ở tuổi của tôi cần những gì?',
-    'Gợi ý thực đơn giàu Kali ít Natri cho bữa tối?'
+    'Gợi ý mâm cơm xả nước mặt (Debloat) giá sinh viên <50k',
+    'Tối ưu chiều cao ở tuổi của tôi cần những gì?'
   ];
 
   return (
@@ -389,20 +457,90 @@ export const CoachView: React.FC<CoachViewProps> = ({
                 </div>
 
                 {/* Detected Meals from Conversation / Image -> Apply to Tracker */}
+                {/* Full Suggested Meal Plan from Coach Max */}
+                {!isUser && m.suggestedMealPlan && (
+                  <div className="bg-gradient-to-r from-emerald-950/60 via-slate-900 to-cyan-950/60 border-2 border-emerald-500/50 rounded-2xl p-4 space-y-3 shadow-2xl animate-fade-in">
+                    <div className="flex justify-between items-start gap-2 border-b border-slate-800 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                          <ChefHat className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
+                            THỰC ĐƠN COACH MAX ĐỀ XUẤT CHO BẠN
+                          </div>
+                          <div className="text-xs font-bold text-white flex items-center gap-2 mt-0.5">
+                            <span>4 bữa (~{m.suggestedMealPlan.totalCalories} kcal)</span>
+                            <span className="text-amber-400 font-semibold">• ~{(m.suggestedMealPlan.totalEstimatedCostVnd || 80000).toLocaleString('vi-VN')} đ</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold">
+                        K:Na {m.suggestedMealPlan.debloatRatio}:1
+                      </span>
+                    </div>
+
+                    {/* Meals preview list */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {m.suggestedMealPlan.meals.map((sMeal) => (
+                        <div key={sMeal.id} className="bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+                          <div className="text-[10px] text-slate-400 uppercase font-bold">
+                            {sMeal.mealType === 'breakfast' ? 'Sáng' : sMeal.mealType === 'lunch' ? 'Trưa' : sMeal.mealType === 'dinner' ? 'Tối' : 'Phụ'} • {sMeal.calories} kcal
+                          </div>
+                          <div className="font-semibold text-white truncate text-[11px] mt-0.5">{sMeal.name}</div>
+                          <div className="text-[10px] text-amber-400 mt-0.5">~{(sMeal.estimatedCostVnd || 20000).toLocaleString('vi-VN')} đ</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Apply Full Plan Button */}
+                    <div className="pt-1">
+                      {m.suggestedPlanApplied ? (
+                        <div className="w-full flex items-center justify-between p-2 bg-emerald-950/50 rounded-xl border border-emerald-500/40 text-xs text-emerald-400 font-bold">
+                          <span className="flex items-center gap-1.5"><Check className="w-4 h-4" /> Đã áp dụng vào Thực Đơn Hàng Ngày!</span>
+                          {onNavigateToTab && (
+                            <button
+                              type="button"
+                              onClick={() => onNavigateToTab('food')}
+                              className="text-xs text-cyan-300 hover:text-white flex items-center gap-1 font-bold underline"
+                            >
+                              Xem thực đơn
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleApplySuggestedMealPlan(m.id, m.suggestedMealPlan!)}
+                          className="w-full py-2.5 px-3 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition transform active:scale-95"
+                        >
+                          <Utensils className="w-4 h-4 stroke-[2.5]" />
+                          <span>⚡ ÁP DỤNG TOÀN BỘ VÀO THỰC ĐƠN HÔM NAY</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Detected / Recommended Meals from Conversation / Image */}
                 {!isUser && m.detectedMeals && m.detectedMeals.length > 0 && (
                   <div className="space-y-2 pt-1 animate-fade-in">
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 px-1">
                       <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>PHÁT HIỆN BỮA ĂN (BẤM ĐỂ LƯU VÀO TRACKER):</span>
+                      <span>MÓN ĂN ĐỀ XUẤT (ÁP DỤNG VÀO THỰC ĐƠN HOẶC TRACKER):</span>
                     </div>
 
                     {m.detectedMeals.map((meal, idx) => {
                       const isApplied = meal.applied;
+                      const isAppliedToPlan = meal.appliedToPlan;
+                      const mealLabel = meal.mealType === 'breakfast' ? 'Sáng' : meal.mealType === 'lunch' ? 'Trưa' : meal.mealType === 'dinner' ? 'Tối' : 'Phụ';
+
                       return (
                         <div
                           key={idx}
                           className={`p-3 rounded-2xl border transition shadow-xl ${
-                            isApplied
+                            isApplied || isAppliedToPlan
                               ? 'bg-emerald-950/40 border-emerald-500/50'
                               : 'bg-slate-900/95 border-emerald-500/30 hover:border-emerald-500/60'
                           }`}
@@ -416,11 +554,11 @@ export const CoachView: React.FC<CoachViewProps> = ({
                                 <h4 className="font-extrabold text-white text-xs sm:text-sm">
                                   {meal.name}
                                 </h4>
-                                {meal.servingSize && (
-                                  <span className="text-[10px] text-slate-400">
-                                    Khẩu phần: {meal.servingSize}
-                                  </span>
-                                )}
+                                <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                                  <span className="uppercase font-semibold text-emerald-400">Bữa {mealLabel}</span>
+                                  {meal.servingSize && <span>• {meal.servingSize}</span>}
+                                  <span className="text-amber-400 font-semibold">• ~{(meal.estimatedCostVnd || 25000).toLocaleString('vi-VN')} đ</span>
+                                </div>
                               </div>
                             </div>
 
@@ -446,7 +584,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
                               <span className="text-amber-400 font-bold">{meal.nutrients?.fat || 0}g</span>
                             </div>
                             <div className="bg-slate-950/80 p-1.5 rounded-lg border border-slate-800">
-                              <span className="text-slate-400 block text-[9px]">Natri (Debloat)</span>
+                              <span className="text-slate-400 block text-[9px]">Natri</span>
                               <span className="text-rose-400 font-bold">{meal.nutrients?.sodium || 0}mg</span>
                             </div>
                           </div>
@@ -457,31 +595,37 @@ export const CoachView: React.FC<CoachViewProps> = ({
                             </p>
                           )}
 
-                          {/* Action Button: Apply to Tracker */}
-                          <div className="flex items-center gap-2 pt-1">
+                          {/* Dual Action Buttons: Apply to Tracker OR Apply to Daily Meal Plan */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                            {/* Button A: Apply to Tracker */}
                             {isApplied ? (
-                              <div className="w-full flex items-center justify-between p-1 bg-emerald-950/50 rounded-xl border border-emerald-500/40">
-                                <span className="px-2 py-1 text-emerald-400 text-xs font-bold flex items-center gap-1.5">
-                                  <Check className="w-4 h-4 text-emerald-400" /> Đã lưu vào Nhật ký Calo
-                                </span>
-                                {onNavigateToTab && (
-                                  <button
-                                    type="button"
-                                    onClick={() => onNavigateToTab('food')}
-                                    className="text-xs text-cyan-300 hover:text-white font-bold flex items-center gap-1 px-2 py-1"
-                                  >
-                                    Xem nhật ký <ArrowRight className="w-3 h-3" />
-                                  </button>
-                                )}
+                              <div className="p-2 bg-emerald-950/50 rounded-xl border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5">
+                                <Check className="w-3.5 h-3.5" /> Đã lưu vào Tracker
                               </div>
                             ) : (
                               <button
                                 type="button"
                                 onClick={() => handleApplyMeal(m.id, idx, meal)}
-                                className="w-full py-2.5 px-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition transform active:scale-95"
+                                className="py-2 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition"
                               >
-                                <PlusCircle className="w-4 h-4 stroke-[2.5]" />
-                                <span>+ ÁP DỤNG BỮA ĂN NÀY VÀO TRACKER</span>
+                                <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Lưu vào Nhật Ký Calo</span>
+                              </button>
+                            )}
+
+                            {/* Button B: Apply to Daily Meal Plan */}
+                            {isAppliedToPlan ? (
+                              <div className="p-2 bg-emerald-950/50 rounded-xl border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5">
+                                <Check className="w-3.5 h-3.5" /> Đã đổi vào Thực Đơn
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleApplyMealToDailyPlan(m.id, idx, meal)}
+                                className="py-2 px-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 transition"
+                              >
+                                <Utensils className="w-3.5 h-3.5" />
+                                <span>Thay Bữa {mealLabel} Thực Đơn</span>
                               </button>
                             )}
                           </div>

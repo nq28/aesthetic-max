@@ -11,7 +11,8 @@ import {
   DailySnapshot,
   WorkoutBurnItem,
   DailyMealPlan,
-  PlannedMeal
+  PlannedMeal,
+  DetectedMealItem
 } from '../types';
 import { STANDARD_NUTRIENTS } from '../constants/nutrients';
 
@@ -524,6 +525,66 @@ export const storageService = {
     items[itemIdx] = { ...items[itemIdx], checked: !items[itemIdx].checked };
     list[catIdx] = { ...list[catIdx], items };
     storageService.saveDailyMealPlan({ ...current, groceryList: list });
+  },
+
+  replaceMealInPlan: (newMeal: PlannedMeal): DailyMealPlan | null => {
+    const current = storageService.getDailyMealPlan();
+    if (!current) return null;
+    const meals = current.meals.map(m => m.mealType === newMeal.mealType || m.id === newMeal.id ? newMeal : m);
+    const totalCalories = meals.reduce((acc, m) => acc + m.calories, 0);
+    const totalProtein = meals.reduce((acc, m) => acc + m.protein, 0);
+    const totalCarbs = meals.reduce((acc, m) => acc + m.carbs, 0);
+    const totalFat = meals.reduce((acc, m) => acc + m.fat, 0);
+    const totalSodium = meals.reduce((acc, m) => acc + m.sodium, 0);
+    const totalPotassium = meals.reduce((acc, m) => acc + m.potassium, 0);
+    const totalEstimatedCostVnd = meals.reduce((acc, m) => acc + (m.estimatedCostVnd || 0), 0);
+    const debloatRatio = Number((totalPotassium / (totalSodium || 1)).toFixed(1));
+
+    const updated: DailyMealPlan = {
+      ...current,
+      meals,
+      totalCalories,
+      totalProtein,
+      totalCarbs,
+      totalFat,
+      totalSodium,
+      totalPotassium,
+      totalEstimatedCostVnd,
+      debloatRatio
+    };
+    storageService.saveDailyMealPlan(updated);
+    return updated;
+  },
+
+  applyDetectedMealToPlan: (meal: DetectedMealItem): { plan: DailyMealPlan; replacedMealName: string } | null => {
+    const current = storageService.getDailyMealPlan();
+    if (!current) return null;
+    
+    const existingIndex = current.meals.findIndex(m => m.mealType === meal.mealType);
+    const replacedMealName = existingIndex >= 0 ? current.meals[existingIndex].name : meal.name;
+
+    const plannedMeal: PlannedMeal = {
+      id: 'meal_' + Date.now(),
+      name: meal.name,
+      mealType: meal.mealType,
+      calories: Math.round(meal.calories),
+      protein: Math.round(meal.nutrients?.protein || 0),
+      carbs: Math.round(meal.nutrients?.carbs || 0),
+      fat: Math.round(meal.nutrients?.fat || 0),
+      sodium: Math.round(meal.nutrients?.sodium || 0),
+      potassium: Math.round(meal.nutrients?.potassium || 0),
+      servingSize: meal.servingSize || '1 phần',
+      description: meal.aiNotes || '',
+      prepTimeMinutes: meal.prepTimeMinutes || 15,
+      ingredients: meal.ingredients || [meal.name],
+      recipeQuickSteps: meal.recipeQuickSteps || ['Chuẩn bị nguyên liệu sạch sẽ.', 'Chế biến chín đều vừa tới, nêm nhạt giảm muối.', 'Thưởng thức khi còn ấm.'],
+      logged: false,
+      estimatedCostVnd: meal.estimatedCostVnd || 25000
+    };
+
+    const updatedPlan = storageService.replaceMealInPlan(plannedMeal);
+    if (!updatedPlan) return null;
+    return { plan: updatedPlan, replacedMealName };
   },
 
   // Reset all for testing

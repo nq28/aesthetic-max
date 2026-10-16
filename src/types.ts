@@ -22,6 +22,7 @@ export interface UserProfile {
   dailyCalorieTarget: number;
   createdAt: number;
   startDate?: string; // YYYY-MM-DD (Ngày bắt đầu hành trình)
+  foodBudgetPerDayVnd?: number; // Ngân sách ăn uống mỗi ngày (VND), e.g. 50000, 80000, 120000, 0 = không giới hạn
   onboardingCompleted: boolean;
 }
 
@@ -166,6 +167,11 @@ export interface DetectedMealItem {
   nutrients: Record<string, number>;
   aiNotes?: string;
   applied?: boolean;
+  appliedToPlan?: boolean;
+  estimatedCostVnd?: number;
+  prepTimeMinutes?: number;
+  ingredients?: string[];
+  recipeQuickSteps?: string[];
 }
 
 export interface CoachMessage {
@@ -175,6 +181,8 @@ export interface CoachMessage {
   timestamp: number;
   imageUrl?: string;
   detectedMeals?: DetectedMealItem[];
+  suggestedMealPlan?: DailyMealPlan;
+  suggestedPlanApplied?: boolean;
 }
 
 export type AccentColor = 'emerald' | 'purple' | 'cyan' | 'gold' | 'crimson' | 'silver' | 'custom';
@@ -252,11 +260,12 @@ export interface PlannedMeal {
   ingredients: string[];
   recipeQuickSteps?: string[];
   logged?: boolean;
+  estimatedCostVnd?: number; // Chi phí ước tính (VND)
 }
 
 export interface GroceryCategory {
   category: string;
-  items: { name: string; amount: string; checked: boolean }[];
+  items: { name: string; amount: string; checked: boolean; estimatedCostVnd?: number }[];
 }
 
 export interface DailyMealPlan {
@@ -275,6 +284,8 @@ export interface DailyMealPlan {
   aiChefAdvice: string;
   meals: PlannedMeal[];
   groceryList: GroceryCategory[];
+  dailyBudgetVnd?: number; // Ngân sách mục tiêu (VND)
+  totalEstimatedCostVnd?: number; // Tổng chi phí thực tế ước tính (VND)
 }
 
 
