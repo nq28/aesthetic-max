@@ -254,6 +254,7 @@ export const App: React.FC = () => {
                   onFoodAdded={handleFoodAdded}
                   todayFoodItems={todayFoodItems}
                   onFoodDeleted={handleFoodDeleted}
+                  currentPlan={currentPlan}
                 />
               )}
 

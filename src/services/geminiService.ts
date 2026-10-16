@@ -1,4 +1,4 @@
-import { FoodItem, LooksmaxAnalysis, UserProfile, SmartPlan, DetectedMealItem } from '../types';
+import { FoodItem, LooksmaxAnalysis, UserProfile, SmartPlan, DetectedMealItem, DailyMealPlan, PlannedMeal, DietType } from '../types';
 import { storageService } from './storageService';
 import { compressImageToThumbnail } from '../utils/imageUtils';
 
@@ -687,5 +687,173 @@ If NO meals or foods were eaten, mentioned, or shown, DO NOT output the \`\`\`js
       console.warn('Gemini neural TTS error:', err);
       return null;
     }
+  },
+
+  // AI Daily Meal Planner (Automatic Menu Generator with Debloat & Aesthetics optimization)
+  generateDailyMealPlan: async (
+    userProfile: UserProfile,
+    currentPlan: SmartPlan | null,
+    dietType: DietType = 'vietnamese_home'
+  ): Promise<DailyMealPlan> => {
+    const apiKey = storageService.getApiKey();
+    if (!apiKey) {
+      throw new Error('Chưa cấu hình Gemini API Key. Vui lòng nhập API Key để tạo thực đơn!');
+    }
+
+    const targetCal = currentPlan?.calorieTarget || userProfile.dailyCalorieTarget;
+    const targetProt = currentPlan?.proteinTarget || Math.round(userProfile.weight * 2);
+    const targetCarb = currentPlan?.carbTarget || Math.round((targetCal * 0.45) / 4);
+    const targetFat = currentPlan?.fatTarget || Math.round((targetCal * 0.25) / 9);
+
+    const dietDescriptions: Record<DietType, string> = {
+      vietnamese_home: 'Mâm cơm gia đình Việt Nam bình dân, thơm ngon, dễ nấu từ nguyên liệu chợ truyền thống (thịt nạc, cá đồng/biển, trứng, đậu phụ, rau xanh theo mùa, khoai lang, cơm trắng/gạo lứt vừa phải).',
+      eat_clean: 'Eat Clean & Fitness chuẩn GYM (ức gà áp chảo, cá hồi, thịt bò, yến mạch, rau củ hấp, dầu oliu, quả bơ, các loại hạt).',
+      budget_student: 'Tiết kiệm sinh viên (<45.000đ/bữa) nhưng cực giàu protein và no lâu (trứng gà, đậu phụ rim, ức gà đông lạnh, rau muống, chuối, lạc rang).',
+      quick_prep: 'Nhanh gọn tiện lợi (<15 phút chuẩn bị) cho người bận rộn (bánh mì nguyên cám, ức gà xé sẵn, sinh tố yến mạch whey/sữa hạt, salad trộn).',
+      high_protein_veg: 'Món chay giàu đạm (đậu phụ non, nấm đùi gà, đậu nành Edamame, đậu lăng, các loại hạt dinh dưỡng, sữa đậu nành không đường).'
+    };
+
+    const prompt = `You are a certified executive sports nutritionist and chef specializing in Vietnamese physique and aesthetic looksmaxxing nutrition.
+Create a complete, delicious 1-day meal plan tailored to this user:
+- Goal: Body Fat ${userProfile.targetBodyFat}%, Aesthetic: ${userProfile.aestheticStyle === 'asian_pretty_boy' ? 'Asian Pretty Boy (Sharp V-line jaw, clean skin, de-bloat priority)' : 'Western PSL & Muscle Density'}
+- Target Daily Calories: ${targetCal} kcal (Tolerance +/- 5%)
+- Target Protein: ${targetProt}g
+- Target Carbs: ${targetCarb}g
+- Target Fat: ${targetFat}g
+- Dietary Style: ${dietDescriptions[dietType]}
+
+CRITICAL AESTHETIC & DEBLOAT RULES:
+1. Maximize Potassium (Target > 3,000mg/day) from natural sources (spinach, sweet potato, banana, mushrooms, avocado) to flush facial sodium retention.
+2. Moderate Sodium (< 1,800mg/day) to eliminate face puffiness and morning water retention.
+3. Include 4 structured meals: Breakfast (Bữa sáng), Lunch (Bữa trưa), Dinner (Bữa tối), and Snack (Bữa phụ).
+4. For each meal provide: realistic Vietnamese meal name, portion in grams or bowls/pieces, calories, protein, carbs, fat, sodium, potassium, prep time in minutes, key ingredients, and 2-3 quick cooking steps.
+5. Create a smart consolidated Grocery List grouped into 4 categories: 'Thịt, Cá & Trứng (Protein)', 'Rau, Củ & Trái Cây (Kali & Vi chất)', 'Tinh Bột & Các Loại Hạt', 'Gia Vị & Khác'.
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "totalCalories": number,
+  "totalProtein": number,
+  "totalCarbs": number,
+  "totalFat": number,
+  "totalSodium": number,
+  "totalPotassium": number,
+  "debloatScore": "Xuất sắc",
+  "debloatRatio": 2.2,
+  "aiChefAdvice": string (1-2 sentences of encouraging aesthetic cooking tips in Vietnamese),
+  "meals": [
+    {
+      "id": "meal_1",
+      "name": string,
+      "mealType": "breakfast",
+      "calories": number,
+      "protein": number,
+      "carbs": number,
+      "fat": number,
+      "sodium": number,
+      "potassium": number,
+      "servingSize": string,
+      "description": string,
+      "prepTimeMinutes": number,
+      "ingredients": ["string"],
+      "recipeQuickSteps": ["string"]
+    }
+  ],
+  "groceryList": [
+    {
+      "category": string,
+      "items": [
+        { "name": string, "amount": string, "checked": false }
+      ]
+    }
+  ]
+}
+All names, descriptions, and instructions must be in natural, mouth-watering Vietnamese. Return ONLY raw JSON without markdown.`;
+
+    const data = await callGeminiApi(apiKey, {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.3,
+        responseMimeType: 'application/json'
+      }
+    });
+
+    const textOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textOutput) throw new Error('Không nhận được thực đơn từ Gemini AI');
+
+    const parsed = JSON.parse(textOutput);
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    return {
+      id: 'plan_' + Date.now(),
+      date: todayStr,
+      dietType,
+      targetCalories: targetCal,
+      ...parsed,
+      meals: (parsed.meals || []).map((m: any, idx: number) => ({
+        ...m,
+        id: m.id || `meal_${Date.now()}_${idx}`,
+        logged: false
+      }))
+    };
+  },
+
+  // Swap / Reroll a single meal while preserving total macro balance
+  swapSingleMeal: async (
+    userProfile: UserProfile,
+    currentPlan: SmartPlan | null,
+    mealToReplace: PlannedMeal,
+    dietType: DietType = 'vietnamese_home'
+  ): Promise<PlannedMeal> => {
+    const apiKey = storageService.getApiKey();
+    if (!apiKey) {
+      throw new Error('Chưa cấu hình Gemini API Key. Vui lòng nhập API Key để đổi món!');
+    }
+
+    const prompt = `You are an expert fitness chef.
+Recommend ONE alternative meal to replace this meal:
+- Meal Type: ${mealToReplace.mealType}
+- Current Meal: "${mealToReplace.name}"
+- Target Calories to match: ~${mealToReplace.calories} kcal (+/- 10%)
+- Target Protein: ~${mealToReplace.protein}g
+- Target Carbs: ~${mealToReplace.carbs}g
+- Target Fat: ~${mealToReplace.fat}g
+- Diet Style: ${dietType}
+- Aesthetic requirement: High potassium, low sodium to avoid facial water retention.
+
+Return ONLY raw JSON with:
+{
+  "name": string (creative Vietnamese meal name),
+  "calories": number,
+  "protein": number,
+  "carbs": number,
+  "fat": number,
+  "sodium": number,
+  "potassium": number,
+  "servingSize": string,
+  "description": string,
+  "prepTimeMinutes": number,
+  "ingredients": ["string"],
+  "recipeQuickSteps": ["string"]
+}
+No markdown, return strictly raw JSON.`;
+
+    const data = await callGeminiApi(apiKey, {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.4,
+        responseMimeType: 'application/json'
+      }
+    });
+
+    const textOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textOutput) throw new Error('Không nhận được món ăn thay thế từ Gemini AI');
+
+    const parsed = JSON.parse(textOutput);
+    return {
+      ...parsed,
+      id: 'meal_swapped_' + Date.now(),
+      mealType: mealToReplace.mealType,
+      logged: false
+    };
   }
 };

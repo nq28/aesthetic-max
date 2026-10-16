@@ -229,3 +229,52 @@ export interface WorkoutBurnItem {
   timestamp: number;
 }
 
+export type DietType = 
+  | 'vietnamese_home'   // Món Việt cơm nhà bình dân
+  | 'eat_clean'         // Chuẩn GYM & Eat Clean
+  | 'budget_student'    // Tiết kiệm sinh viên (<45k/bữa)
+  | 'quick_prep'        // Nhanh gọn (<15 phút)
+  | 'high_protein_veg'; // Món chay giàu đạm
+
+export interface PlannedMeal {
+  id: string;
+  name: string;
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  sodium: number; // mg
+  potassium: number; // mg
+  servingSize: string;
+  description: string;
+  prepTimeMinutes: number;
+  ingredients: string[];
+  recipeQuickSteps?: string[];
+  logged?: boolean;
+}
+
+export interface GroceryCategory {
+  category: string;
+  items: { name: string; amount: string; checked: boolean }[];
+}
+
+export interface DailyMealPlan {
+  id: string;
+  date: string; // YYYY-MM-DD
+  dietType: DietType;
+  targetCalories: number;
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  totalSodium: number;
+  totalPotassium: number;
+  debloatScore: 'Xuất sắc' | 'Tốt' | 'Cần chú ý';
+  debloatRatio: number; // Potassium / Sodium
+  aiChefAdvice: string;
+  meals: PlannedMeal[];
+  groceryList: GroceryCategory[];
+}
+
+

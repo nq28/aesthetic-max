@@ -9,7 +9,9 @@ import {
   StreakData,
   HabitNotificationSettings,
   DailySnapshot,
-  WorkoutBurnItem
+  WorkoutBurnItem,
+  DailyMealPlan,
+  PlannedMeal
 } from '../types';
 import { STANDARD_NUTRIENTS } from '../constants/nutrients';
 
@@ -27,6 +29,7 @@ const KEYS = {
   DAILY_HISTORY: 'aesthetic_max_daily_history',
   NOTIFICATION_SETTINGS: 'aesthetic_max_notification_settings',
   WORKOUT_BURN: 'aesthetic_max_workout_burn',
+  DAILY_MEAL_PLAN: 'aesthetic_max_daily_meal_plan',
 };
 
 function safeSetItem(key: string, value: string): boolean {
@@ -463,7 +466,8 @@ export const storageService = {
       streakData: storageService.getStreakData(),
       dailyHistory: storageService.getDailyHistory(),
       notificationSettings: storageService.getNotificationSettings(),
-      todayWorkoutBurn: storageService.getTodayWorkoutBurn()
+      todayWorkoutBurn: storageService.getTodayWorkoutBurn(),
+      dailyMealPlan: storageService.getDailyMealPlan()
     };
     return JSON.stringify(backup, null, 2);
   },
@@ -483,11 +487,43 @@ export const storageService = {
       if (backup.streakData) localStorage.setItem(KEYS.STREAK_DATA, JSON.stringify(backup.streakData));
       if (backup.dailyHistory) localStorage.setItem(KEYS.DAILY_HISTORY, JSON.stringify(backup.dailyHistory));
       if (backup.notificationSettings) localStorage.setItem(KEYS.NOTIFICATION_SETTINGS, JSON.stringify(backup.notificationSettings));
+      if (backup.dailyMealPlan) localStorage.setItem(KEYS.DAILY_MEAL_PLAN, JSON.stringify(backup.dailyMealPlan));
       return true;
     } catch (e) {
       console.error('Backup import error:', e);
       return false;
     }
+  },
+
+  // Daily Meal Planner
+  getDailyMealPlan: (): DailyMealPlan | null => {
+    try {
+      const data = localStorage.getItem(KEYS.DAILY_MEAL_PLAN);
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  saveDailyMealPlan: (plan: DailyMealPlan): void => {
+    safeSetItem(KEYS.DAILY_MEAL_PLAN, JSON.stringify(plan));
+  },
+
+  markPlannedMealLogged: (mealId: string): void => {
+    const current = storageService.getDailyMealPlan();
+    if (!current) return;
+    const updatedMeals = current.meals.map(m => m.id === mealId ? { ...m, logged: true } : m);
+    storageService.saveDailyMealPlan({ ...current, meals: updatedMeals });
+  },
+
+  toggleGroceryItem: (catIdx: number, itemIdx: number): void => {
+    const current = storageService.getDailyMealPlan();
+    if (!current || !current.groceryList[catIdx]) return;
+    const list = [...current.groceryList];
+    const items = [...list[catIdx].items];
+    items[itemIdx] = { ...items[itemIdx], checked: !items[itemIdx].checked };
+    list[catIdx] = { ...list[catIdx], items };
+    storageService.saveDailyMealPlan({ ...current, groceryList: list });
   },
 
   // Reset all for testing

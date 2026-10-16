@@ -1,0 +1,675 @@
+import React, { useState, useEffect } from 'react';
+import { UserProfile, SmartPlan, DailyMealPlan, PlannedMeal, DietType, FoodItem } from '../types';
+import { geminiService } from '../services/geminiService';
+import { storageService } from '../services/storageService';
+import confetti from 'canvas-confetti';
+import { 
+  Sparkles, 
+  RotateCw, 
+  Check, 
+  Clock, 
+  ChefHat, 
+  ShoppingCart, 
+  Copy, 
+  Flame, 
+  Droplet, 
+  ChevronDown, 
+  ChevronUp, 
+  Info, 
+  Utensils, 
+  Share2,
+  CheckSquare,
+  Square,
+  RefreshCw
+} from 'lucide-react';
+
+interface MealPlannerViewProps {
+  userProfile: UserProfile;
+  currentPlan: SmartPlan | null;
+  onFoodAdded: (item: FoodItem) => void;
+  onNavigateToScan?: () => void;
+}
+
+const DIET_OPTIONS: { id: DietType; label: string; icon: string; desc: string }[] = [
+  { id: 'vietnamese_home', label: 'Cơm Nhà Việt Nam', icon: '🍚', desc: 'Mâm cơm bình dân, thơm ngon, dễ mua ở chợ' },
+  { id: 'eat_clean', label: 'Eat Clean GYM', icon: '🥗', desc: 'Ức gà, cá, yến mạch, chuẩn tăng cơ giảm mỡ' },
+  { id: 'budget_student', label: 'Tiết Kiệm Sinh Viên', icon: '💰', desc: 'Dưới 45k/bữa nhưng vẫn đảm bảo đủ protein' },
+  { id: 'quick_prep', label: 'Nhanh Gọn <15 Phút', icon: '⚡', desc: 'Chuẩn bị siêu nhanh cho người bận rộn' },
+  { id: 'high_protein_veg', label: 'Chay Giàu Đạm', icon: '🌱', desc: 'Đậu phụ, nấm, hạt dinh dưỡng lành mạnh' }
+];
+
+export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
+  userProfile,
+  currentPlan,
+  onFoodAdded,
+  onNavigateToScan
+}) => {
+  const [mealPlan, setMealPlan] = useState<DailyMealPlan | null>(() => {
+    return storageService.getDailyMealPlan();
+  });
+
+  const [selectedDiet, setSelectedDiet] = useState<DietType>(() => {
+    return mealPlan?.dietType || 'vietnamese_home';
+  });
+
+  const [activeTab, setActiveTab] = useState<'meals' | 'grocery'>('meals');
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [swappingMealId, setSwappingMealId] = useState<string | null>(null);
+  const [expandedMealId, setExpandedMealId] = useState<string | null>(null);
+  const [copiedMsg, setCopiedMsg] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Auto-generate if today doesn't have a plan yet
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (!mealPlan || mealPlan.date !== today) {
+      handleGeneratePlan(selectedDiet);
+    }
+  }, []);
+
+  // Generate / Reroll Entire Daily Meal Plan
+  const handleGeneratePlan = async (dietToUse: DietType = selectedDiet) => {
+    setIsGenerating(true);
+    try {
+      const plan = await geminiService.generateDailyMealPlan(userProfile, currentPlan, dietToUse);
+      setMealPlan(plan);
+      storageService.saveDailyMealPlan(plan);
+      setToastMsg('✨ Đã tạo thực đơn mới chuẩn Aesthetic & Debloat thành công!');
+      setTimeout(() => setToastMsg(null), 3500);
+      try {
+        confetti({ particleCount: 35, spread: 50, origin: { y: 0.6 } });
+      } catch {}
+    } catch (err: any) {
+      console.error(err);
+      alert('Không thể tạo thực đơn: ' + (err?.message || 'Lỗi mạng hoặc API'));
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Swap / Reroll a single meal
+  const handleSwapMeal = async (mealToSwap: PlannedMeal) => {
+    if (!mealPlan) return;
+    setSwappingMealId(mealToSwap.id);
+    try {
+      const newMeal = await geminiService.swapSingleMeal(userProfile, currentPlan, mealToSwap, selectedDiet);
+      
+      const updatedMeals = mealPlan.meals.map(m => m.id === mealToSwap.id ? newMeal : m);
+      
+      // Recalculate totals
+      const totalCalories = updatedMeals.reduce((acc, m) => acc + m.calories, 0);
+      const totalProtein = updatedMeals.reduce((acc, m) => acc + m.protein, 0);
+      const totalCarbs = updatedMeals.reduce((acc, m) => acc + m.carbs, 0);
+      const totalFat = updatedMeals.reduce((acc, m) => acc + m.fat, 0);
+      const totalSodium = updatedMeals.reduce((acc, m) => acc + m.sodium, 0);
+      const totalPotassium = updatedMeals.reduce((acc, m) => acc + m.potassium, 0);
+      const debloatRatio = Number((totalPotassium / (totalSodium || 1)).toFixed(1));
+
+      const updatedPlan: DailyMealPlan = {
+        ...mealPlan,
+        meals: updatedMeals,
+        totalCalories,
+        totalProtein,
+        totalCarbs,
+        totalFat,
+        totalSodium,
+        totalPotassium,
+        debloatRatio
+      };
+
+      setMealPlan(updatedPlan);
+      storageService.saveDailyMealPlan(updatedPlan);
+      setToastMsg(`🔄 Đã đổi món sang "${newMeal.name}"!`);
+      setTimeout(() => setToastMsg(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      alert('Không thể đổi món: ' + (err?.message || 'Vui lòng thử lại'));
+    } finally {
+      setSwappingMealId(null);
+    }
+  };
+
+  // 1-Click: Log planned meal to today's food tracker
+  const handleLogPlannedMeal = (meal: PlannedMeal) => {
+    if (meal.logged) {
+      alert('Món này đã được lưu vào nhật ký ăn uống hôm nay rồi!');
+      return;
+    }
+
+    try {
+      const foodItem: Omit<FoodItem, 'id' | 'timestamp'> = {
+        name: meal.name,
+        mealType: meal.mealType,
+        calories: meal.calories,
+        servingSize: meal.servingSize,
+        nutrients: {
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fat: meal.fat,
+          sodium: meal.sodium,
+          potassium: meal.potassium
+        },
+        aiNotes: `Thực đơn AI đề xuất (${meal.prepTimeMinutes}p chuẩn bị) • Tỷ lệ xả nước Kali:Natri cao.`
+      };
+
+      const saved = storageService.addFoodItem(foodItem);
+      storageService.markPlannedMealLogged(meal.id);
+      
+      // Update local state
+      if (mealPlan) {
+        const updatedMeals = mealPlan.meals.map(m => m.id === meal.id ? { ...m, logged: true } : m);
+        setMealPlan({ ...mealPlan, meals: updatedMeals });
+      }
+
+      onFoodAdded(saved);
+      setToastMsg(`🎉 Đã nạp "${meal.name}" (${meal.calories} kcal) vào nhật ký calo!`);
+      setTimeout(() => setToastMsg(null), 3500);
+
+      try {
+        confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 } });
+      } catch {}
+    } catch (err: any) {
+      console.error(err);
+      alert('Lỗi lưu nhật ký: ' + err?.message);
+    }
+  };
+
+  // Toggle grocery item checkbox
+  const handleToggleGrocery = (catIdx: number, itemIdx: number) => {
+    storageService.toggleGroceryItem(catIdx, itemIdx);
+    if (!mealPlan) return;
+    const list = [...mealPlan.groceryList];
+    const items = [...list[catIdx].items];
+    items[itemIdx] = { ...items[itemIdx], checked: !items[itemIdx].checked };
+    list[catIdx] = { ...list[catIdx], items };
+    setMealPlan({ ...mealPlan, groceryList: list });
+  };
+
+  // Copy Menu to Clipboard
+  const handleCopyMenu = () => {
+    if (!mealPlan) return;
+    const lines = [
+      `🌟 THỰC ĐƠN HÔM NAY (${mealPlan.date}) - AESTHETIC MAX`,
+      `🎯 Mục tiêu: ${mealPlan.totalCalories} kcal | P: ${mealPlan.totalProtein}g | C: ${mealPlan.totalCarbs}g | F: ${mealPlan.totalFat}g`,
+      `💧 Tỷ lệ Xả Nước (K:Na): ${mealPlan.debloatRatio} : 1 (${mealPlan.debloatScore})`,
+      '',
+      ...mealPlan.meals.map(m => {
+        const mealTitle = m.mealType === 'breakfast' ? '🍳 BỮA SÁNG' : m.mealType === 'lunch' ? '🥗 BỮA TRƯA' : m.mealType === 'dinner' ? '🍲 BỮA TỐI' : '🍎 BỮA PHỤ';
+        return `${mealTitle}: ${m.name}\n- Khẩu phần: ${m.servingSize}\n- Calo: ${m.calories} kcal (P:${m.protein}g C:${m.carbs}g F:${m.fat}g)\n- Thời gian: ~${m.prepTimeMinutes} phút\n- Nguyên liệu: ${m.ingredients.join(', ')}\n`;
+      }),
+      '👨‍🍳 Lời khuyên từ Coach: ' + mealPlan.aiChefAdvice
+    ];
+
+    navigator.clipboard.writeText(lines.join('\n'));
+    setCopiedMsg('Đã sao chép thực đơn vào Clipboard!');
+    setTimeout(() => setCopiedMsg(null), 3000);
+  };
+
+  // Copy Grocery List to Clipboard
+  const handleCopyGrocery = () => {
+    if (!mealPlan || !mealPlan.groceryList) return;
+    const lines = [
+      `🛒 DANH SÁCH ĐI CHỢ - AESTHETIC MAX (${mealPlan.date})`,
+      '',
+      ...mealPlan.groceryList.map(cat => {
+        const catLines = cat.items.map(it => `[${it.checked ? 'X' : ' '}] ${it.name} (${it.amount})`);
+        return `📌 ${cat.category.toUpperCase()}:\n${catLines.join('\n')}\n`;
+      })
+    ];
+
+    navigator.clipboard.writeText(lines.join('\n'));
+    setCopiedMsg('Đã sao chép danh sách đi chợ!');
+    setTimeout(() => setCopiedMsg(null), 3000);
+  };
+
+  const targetCal = currentPlan?.calorieTarget || userProfile.dailyCalorieTarget;
+  const calDiff = mealPlan ? mealPlan.totalCalories - targetCal : 0;
+
+  // Grocery progress
+  const totalGroceryItems = mealPlan?.groceryList?.reduce((acc, cat) => acc + cat.items.length, 0) || 0;
+  const checkedGroceryItems = mealPlan?.groceryList?.reduce((acc, cat) => acc + cat.items.filter(i => i.checked).length, 0) || 0;
+  const groceryProgressPercent = totalGroceryItems > 0 ? Math.round((checkedGroceryItems / totalGroceryItems) * 100) : 0;
+
+  return (
+    <div className="space-y-5 pb-20">
+      
+      {/* Top Banner Card */}
+      <div className="bg-gradient-to-r from-emerald-950/60 via-slate-900 to-cyan-950/60 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl">
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
+              <ChefHat className="w-4 h-4" />
+              <span>AI Daily Meal Planner & Debloat Chef</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-white">Thực Đơn Cá Nhân Hóa Hàng Ngày</h1>
+            <p className="text-xs text-slate-400 mt-1 max-w-xl">
+              Thực đơn tự động tính toán chính xác calo, chuẩn vi chất tăng cơ & giàu Kali xả nước mặt (Debloat) để lộ đường nét góc cạnh Jawline.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => handleGeneratePlan(selectedDiet)}
+              disabled={isGenerating}
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition shadow-lg ${
+                isGenerating
+                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                  : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/25'
+              }`}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
+              <span>{isGenerating ? 'Đang Lên Thực Đơn...' : 'Đổi Toàn Bộ Thực Đơn'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyMenu}
+              disabled={!mealPlan}
+              title="Sao chép thực đơn để gửi hoặc lưu"
+              className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition border border-slate-700 shrink-0"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Diet Style Selector Pills */}
+        <div className="mt-4 pt-3 border-t border-slate-800/80">
+          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+            Phong cách ăn uống yêu thích:
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-thin scrollbar-thumb-slate-800">
+            {DIET_OPTIONS.map((diet) => {
+              const isSelected = selectedDiet === diet.id;
+              return (
+                <button
+                  key={diet.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedDiet(diet.id);
+                    handleGeneratePlan(diet.id);
+                  }}
+                  disabled={isGenerating}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
+                    isSelected
+                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-500/10'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                  }`}
+                >
+                  <span>{diet.icon}</span>
+                  <span>{diet.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Toast Alert Feedback */}
+      {toastMsg && (
+        <div className="p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-xs font-bold text-emerald-300 flex items-center gap-2 shadow-lg animate-fade-in">
+          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {copiedMsg && (
+        <div className="p-3 bg-cyan-500/20 border border-cyan-500/40 rounded-xl text-xs font-bold text-cyan-300 flex items-center gap-2 shadow-lg animate-fade-in">
+          <Copy className="w-4 h-4 text-cyan-400 shrink-0" />
+          <span>{copiedMsg}</span>
+        </div>
+      )}
+
+      {/* Sub Tabs: 4 Bữa Ăn vs Danh Sách Đi Chợ */}
+      <div className="flex border-b border-slate-800">
+        <button
+          type="button"
+          onClick={() => setActiveTab('meals')}
+          className={`flex items-center gap-2 pb-2.5 px-4 text-xs font-bold transition border-b-2 ${
+            activeTab === 'meals'
+              ? 'border-emerald-500 text-emerald-400'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Utensils className="w-4 h-4" />
+          <span>4 Bữa Ăn Hôm Nay ({mealPlan?.meals.length || 0})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('grocery')}
+          className={`flex items-center gap-2 pb-2.5 px-4 text-xs font-bold transition border-b-2 relative ${
+            activeTab === 'grocery'
+              ? 'border-emerald-500 text-emerald-400'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <ShoppingCart className="w-4 h-4" />
+          <span>Danh Sách Đi Chợ ({checkedGroceryItems}/{totalGroceryItems})</span>
+          {checkedGroceryItems > 0 && (
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+          )}
+        </button>
+      </div>
+
+      {/* Main Tab Content */}
+      {activeTab === 'meals' && (
+        <div className="space-y-4">
+          
+          {/* Nutrition & Debloat Summary Matrix */}
+          {mealPlan && (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-lg">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800/80 pb-3">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">TỔNG QUAN DINH DƯỠNG THỰC ĐƠN</span>
+                  <div className="flex items-baseline gap-2 mt-0.5">
+                    <span className="text-2xl font-black text-white">{mealPlan.totalCalories}</span>
+                    <span className="text-xs text-slate-400">/ Mục tiêu: {targetCal} kcal</span>
+                    {calDiff !== 0 && (
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                        Math.abs(calDiff) <= 100 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
+                      }`}>
+                        {calDiff > 0 ? `+${calDiff}` : calDiff} kcal
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Debloat Pill */}
+                <div className="flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800">
+                  <Droplet className="w-4 h-4 text-cyan-400" />
+                  <div>
+                    <div className="text-[10px] text-slate-400 font-medium">Tỷ lệ Xả Nước K:Na</div>
+                    <div className="text-xs font-bold text-cyan-300 flex items-center gap-1">
+                      <span>{mealPlan.debloatRatio}:1</span>
+                      <span className="text-[10px] text-emerald-400 font-normal">({mealPlan.debloatScore})</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Macro Bars */}
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-1 text-center">
+                <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+                  <div className="text-[10px] text-slate-400">Protein</div>
+                  <div className="text-sm font-bold text-emerald-400">{mealPlan.totalProtein}g</div>
+                </div>
+                <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+                  <div className="text-[10px] text-slate-400">Carbs</div>
+                  <div className="text-sm font-bold text-amber-400">{mealPlan.totalCarbs}g</div>
+                </div>
+                <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+                  <div className="text-[10px] text-slate-400">Chất béo (Fat)</div>
+                  <div className="text-sm font-bold text-rose-400">{mealPlan.totalFat}g</div>
+                </div>
+                <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+                  <div className="text-[10px] text-slate-400">Kali (Xả nước)</div>
+                  <div className="text-sm font-bold text-cyan-400">{mealPlan.totalPotassium}mg</div>
+                </div>
+                <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800 col-span-2 sm:col-span-1">
+                  <div className="text-[10px] text-slate-400">Natri (Muối)</div>
+                  <div className="text-sm font-bold text-slate-300">{mealPlan.totalSodium}mg</div>
+                </div>
+              </div>
+
+              {/* AI Chef Advice */}
+              {mealPlan.aiChefAdvice && (
+                <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200/90 flex items-start gap-2.5">
+                  <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>{mealPlan.aiChefAdvice}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Loading Skeleton */}
+          {isGenerating && !mealPlan && (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center space-y-3">
+              <div className="w-8 h-8 border-3 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="text-sm font-bold text-white">Gemini AI Đang Tính Toán & Soạn Thực Đơn...</p>
+              <p className="text-xs text-slate-400">Đang tối ưu hàm lượng Kali, cắt giảm Natri và cân bằng macro.</p>
+            </div>
+          )}
+
+          {/* Meal Cards */}
+          {mealPlan && mealPlan.meals.map((meal, index) => {
+            const isSwapping = swappingMealId === meal.id;
+            const isExpanded = expandedMealId === meal.id;
+            const mealLabel = meal.mealType === 'breakfast' 
+              ? 'Bữa Sáng' 
+              : meal.mealType === 'lunch' 
+              ? 'Bữa Trưa' 
+              : meal.mealType === 'dinner' 
+              ? 'Bữa Tối' 
+              : 'Bữa Phụ';
+
+            const mealColor = meal.mealType === 'breakfast'
+              ? 'from-amber-500/20 to-orange-500/10 text-amber-400 border-amber-500/30'
+              : meal.mealType === 'lunch'
+              ? 'from-emerald-500/20 to-teal-500/10 text-emerald-400 border-emerald-500/30'
+              : meal.mealType === 'dinner'
+              ? 'from-cyan-500/20 to-blue-500/10 text-cyan-400 border-cyan-500/30'
+              : 'from-purple-500/20 to-pink-500/10 text-purple-400 border-purple-500/30';
+
+            return (
+              <div
+                key={meal.id}
+                className={`bg-slate-900/90 border rounded-2xl p-4 sm:p-5 transition shadow-lg ${
+                  meal.logged 
+                    ? 'border-emerald-500/40 bg-slate-900/40' 
+                    : 'border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                {/* Header Row */}
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border bg-gradient-to-r ${mealColor}`}>
+                      {mealLabel}
+                    </span>
+                    <span className="flex items-center gap-1 text-[11px] text-slate-400">
+                      <Clock className="w-3 h-3 text-slate-500" />
+                      {meal.prepTimeMinutes} phút
+                    </span>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-lg font-black text-white">{meal.calories}</span>
+                    <span className="text-xs text-slate-400 ml-1">kcal</span>
+                  </div>
+                </div>
+
+                {/* Meal Name & Description */}
+                <div className="mt-2">
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <span>{meal.name}</span>
+                    {meal.logged && (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Đã ăn
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Khẩu phần: {meal.servingSize}</p>
+                  {meal.description && (
+                    <p className="text-xs text-slate-300 mt-1 italic">{meal.description}</p>
+                  )}
+                </div>
+
+                {/* Macro Pills */}
+                <div className="flex items-center gap-2.5 mt-3 text-[11px]">
+                  <span className="bg-slate-950 px-2 py-1 rounded-md text-emerald-400 font-medium border border-slate-800">
+                    P: {meal.protein}g
+                  </span>
+                  <span className="bg-slate-950 px-2 py-1 rounded-md text-amber-400 font-medium border border-slate-800">
+                    C: {meal.carbs}g
+                  </span>
+                  <span className="bg-slate-950 px-2 py-1 rounded-md text-rose-400 font-medium border border-slate-800">
+                    F: {meal.fat}g
+                  </span>
+                  <span className="bg-slate-950 px-2 py-1 rounded-md text-cyan-400 font-medium border border-slate-800">
+                    Kali: {meal.potassium}mg
+                  </span>
+                  <span className="text-slate-500 text-[10px]">
+                    Muối: {meal.sodium}mg
+                  </span>
+                </div>
+
+                {/* Expandable Recipe & Ingredients Section */}
+                {isExpanded && (
+                  <div className="mt-3.5 pt-3.5 border-t border-slate-800/80 space-y-2.5 animate-fade-in text-xs">
+                    <div>
+                      <div className="font-bold text-slate-300 mb-1">🛒 Nguyên liệu chính:</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {meal.ingredients.map((ing, iIdx) => (
+                          <span key={iIdx} className="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 text-slate-300">
+                            • {ing}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {meal.recipeQuickSteps && meal.recipeQuickSteps.length > 0 && (
+                      <div className="mt-2">
+                        <div className="font-bold text-slate-300 mb-1">👨‍🍳 Các bước nấu nhanh:</div>
+                        <ol className="list-decimal list-inside space-y-1 text-slate-400">
+                          {meal.recipeQuickSteps.map((step, sIdx) => (
+                            <li key={sIdx} className="leading-relaxed">{step}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedMealId(isExpanded ? null : meal.id)}
+                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition"
+                  >
+                    <span>{isExpanded ? 'Thu gọn' : 'Xem nguyên liệu & cách nấu'}</span>
+                    {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleSwapMeal(meal)}
+                      disabled={isSwapping}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition border border-slate-700"
+                    >
+                      <RotateCw className={`w-3 h-3 ${isSwapping ? 'animate-spin text-emerald-400' : ''}`} />
+                      <span>{isSwapping ? 'Đang đổi...' : 'Đổi món này'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleLogPlannedMeal(meal)}
+                      disabled={meal.logged}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-md ${
+                        meal.logged
+                          ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                          : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
+                      }`}
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>{meal.logged ? 'Đã ăn' : 'Nạp vào nhật ký'}</span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            );
+          })}
+
+        </div>
+      )}
+
+      {/* Grocery / Shopping List Tab */}
+      {activeTab === 'grocery' && (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-3">
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4 text-emerald-400" />
+                <span>Danh Sách Đi Chợ Cho Cả Ngày</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Tổng hợp đầy đủ nguyên liệu của cả 4 bữa ăn để bạn đi chợ hoặc siêu thị một lần là xong.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleCopyGrocery}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition border border-slate-700"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>Sao Chép Danh Sách Đi Chợ</span>
+            </button>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs text-slate-400">
+              <span>Tiến độ mua sắm:</span>
+              <span className="font-bold text-emerald-400">{checkedGroceryItems} / {totalGroceryItems} món ({groceryProgressPercent}%)</span>
+            </div>
+            <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+              <div 
+                className="bg-emerald-500 h-full rounded-full transition-all duration-300"
+                style={{ width: `${groceryProgressPercent}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Categories Grid */}
+          {mealPlan?.groceryList && mealPlan.groceryList.map((category, catIdx) => (
+            <div key={catIdx} className="bg-slate-950/70 border border-slate-800/80 rounded-xl p-3.5 space-y-2.5">
+              <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                {category.category} ({category.items.filter(i => i.checked).length}/{category.items.length})
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {category.items.map((item, itemIdx) => (
+                  <div
+                    key={itemIdx}
+                    onClick={() => handleToggleGrocery(catIdx, itemIdx)}
+                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition border text-xs ${
+                      item.checked
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-slate-500 line-through'
+                        : 'bg-slate-900 border-slate-800/80 text-white hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {item.checked ? (
+                        <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0" />
+                      ) : (
+                        <Square className="w-4 h-4 text-slate-500 shrink-0" />
+                      )}
+                      <span className={item.checked ? 'text-slate-500' : 'text-slate-200'}>
+                        {item.name}
+                      </span>
+                    </div>
+
+                    <span className="text-[11px] font-semibold text-slate-400">
+                      {item.amount}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {(!mealPlan?.groceryList || mealPlan.groceryList.length === 0) && (
+            <div className="text-center py-8 text-xs text-slate-500">
+              Chưa có danh sách đi chợ. Hãy bấm "Tạo / Đổi thực đơn" để sinh danh sách tự động!
+            </div>
+          )}
+        </div>
+      )}
+
+    </div>
+  );
+};

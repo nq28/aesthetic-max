@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { FoodItem, NutrientDefinition, UserProfile } from '../types';
+import { FoodItem, NutrientDefinition, UserProfile, SmartPlan } from '../types';
 import { geminiService } from '../services/geminiService';
 import { storageService } from '../services/storageService';
 import { compressImageToThumbnail } from '../utils/imageUtils';
+import { MealPlannerView } from './MealPlannerView';
 import confetti from 'canvas-confetti';
 import { 
   Camera, 
@@ -14,7 +15,8 @@ import {
   Check, 
   Info, 
   X,
-  Droplet
+  Droplet,
+  UtensilsCrossed
 } from 'lucide-react';
 
 interface FoodTrackerViewProps {
@@ -24,6 +26,7 @@ interface FoodTrackerViewProps {
   onFoodAdded: (item: FoodItem) => void;
   todayFoodItems: FoodItem[];
   onFoodDeleted: (id: string) => void;
+  currentPlan?: SmartPlan | null;
 }
 
 export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
@@ -32,8 +35,10 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
   onNutrientsUpdate,
   onFoodAdded,
   todayFoodItems,
-  onFoodDeleted
+  onFoodDeleted,
+  currentPlan
 }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'planner' | 'scanner'>('planner');
   const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('lunch');
   const [description, setDescription] = useState<string>('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -153,10 +158,48 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-5 pb-20">
       
-      {/* Top Banner */}
-      <div className="bg-gradient-to-r from-emerald-950/40 via-slate-900 to-cyan-950/40 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
+      {/* Segmented Sub-Tab Switcher */}
+      <div className="bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 flex gap-1.5 shadow-lg">
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('planner')}
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition ${
+            activeSubTab === 'planner'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <UtensilsCrossed className="w-4 h-4" />
+          <span>Thực Đơn Hàng Ngày (AI Planner)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('scanner')}
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition ${
+            activeSubTab === 'scanner'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Camera className="w-4 h-4" />
+          <span>Quét Calo & Nhật Ký Đã Ăn</span>
+        </button>
+      </div>
+
+      {activeSubTab === 'planner' ? (
+        <MealPlannerView
+          userProfile={userProfile}
+          currentPlan={currentPlan || null}
+          onFoodAdded={onFoodAdded}
+          onNavigateToScan={() => setActiveSubTab('scanner')}
+        />
+      ) : (
+        <div className="space-y-6">
+          {/* Top Banner */}
+          <div className="bg-gradient-to-r from-emerald-950/40 via-slate-900 to-cyan-950/40 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
@@ -413,6 +456,8 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
           </div>
         )}
       </div>
+      </div>
+      )}
 
       {/* Modal: Add New Custom Nutrient */}
       {showAddNutrientModal && (

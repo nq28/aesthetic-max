@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserProfile, FoodItem, NutrientDefinition, SmartPlan, WorkoutBurnItem, StreakData } from '../types';
+import { UserProfile, FoodItem, NutrientDefinition, SmartPlan, WorkoutBurnItem, StreakData, DailyMealPlan } from '../types';
 import { storageService } from '../services/storageService';
 import { 
   Flame, 
@@ -17,7 +17,10 @@ import {
   Dumbbell,
   Award,
   Activity,
-  TrendingDown
+  TrendingDown,
+  ChefHat,
+  Utensils,
+  ArrowRight
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -47,6 +50,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   // Workout burned calories for today
   const [workoutBurnItems, setWorkoutBurnItems] = useState<WorkoutBurnItem[]>(() => storageService.getTodayWorkoutBurn());
+
+  // Daily Meal Plan
+  const [mealPlan, setMealPlan] = useState<DailyMealPlan | null>(() => storageService.getDailyMealPlan());
+
+  // Refresh meal plan when active
+  useEffect(() => {
+    setMealPlan(storageService.getDailyMealPlan());
+  }, [todayFoodItems]);
 
   // Calculate daily totals
   const totalCalories = todayFoodItems.reduce((acc, item) => acc + (item.calories || 0), 0);
@@ -458,10 +469,65 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </button>
           </div>
         </div>
-
       </div>
 
-      {/* 4. Critical Electrolyte / Debloat Bar (Muối vs Kali) */}
+      {/* 4. AI Daily Meal Plan Shortcut Card */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/30 border border-slate-800 hover:border-emerald-500/40 rounded-3xl p-5 shadow-xl transition space-y-3">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold shrink-0">
+              <ChefHat className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                Thực Đơn AI Hôm Nay (Debloat & Cắt Nét)
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                {mealPlan ? `Đã lên 4 bữa (~${mealPlan.totalCalories} kcal) • Tỷ lệ xả nước K:Na ${mealPlan.debloatRatio}:1` : 'Chưa tạo thực đơn cho ngày hôm nay'}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onNavigate('food')}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-bold transition shadow-sm"
+          >
+            <span>{mealPlan ? 'Xem & Đổi Thực Đơn' : '⚡ Tạo Thực Đơn AI Ngay'}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {mealPlan && mealPlan.meals && mealPlan.meals.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            {mealPlan.meals.map((meal) => (
+              <div
+                key={meal.id}
+                onClick={() => onNavigate('food')}
+                className={`p-2.5 rounded-xl border cursor-pointer transition text-xs ${
+                  meal.logged 
+                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300' 
+                    : 'bg-slate-950/70 border-slate-800/80 hover:border-slate-700 text-slate-300'
+                }`}
+              >
+                <div className="flex justify-between items-center text-[10px] text-slate-400 mb-1">
+                  <span className="uppercase font-bold tracking-wider">
+                    {meal.mealType === 'breakfast' ? 'Sáng' : meal.mealType === 'lunch' ? 'Trưa' : meal.mealType === 'dinner' ? 'Tối' : 'Phụ'}
+                  </span>
+                  {meal.logged ? (
+                    <span className="text-emerald-400 flex items-center gap-0.5 font-bold"><Check className="w-3 h-3" /> Đã ăn</span>
+                  ) : (
+                    <span>{meal.calories} kcal</span>
+                  )}
+                </div>
+                <div className="font-semibold text-white truncate text-[11px]">{meal.name}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 5. Critical Electrolyte / Debloat Bar (Muối vs Kali) */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xl">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider">
