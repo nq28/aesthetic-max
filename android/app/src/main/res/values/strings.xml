@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">AestheticMax</string>
+    <string name="title_activity_main">AestheticMax</string>
+    <string name="package_name">com.aestheticmax.app</string>
+    <string name="custom_url_scheme">com.aestheticmax.app</string>
+</resources>
