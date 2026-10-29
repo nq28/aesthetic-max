@@ -305,25 +305,25 @@ export const CoachView: React.FC<CoachViewProps> = ({
   ];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] max-h-[850px] pb-16">
+    <div className="flex flex-col h-[calc(100vh-175px)] sm:h-[calc(100vh-190px)] w-full relative">
       
       {/* Coach Header Bar */}
-      <div className="liquid-glass-card rounded-[24px] p-3.5 mb-3 flex items-center justify-between shadow-xl backdrop-blur-2xl border border-white/10 shrink-0">
+      <div className="liquid-glass-card rounded-[26px] p-3.5 sm:p-4 mb-3 flex items-center justify-between shadow-2xl backdrop-blur-2xl border border-white/12 shrink-0">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-emerald-500/25">
-              <Bot className="w-5 h-5 stroke-[2.5]" />
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-emerald-500/25">
+              <Bot className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 border-2 border-slate-950 rounded-full animate-pulse shadow-sm shadow-emerald-400/50"></span>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-black text-white">Coach Max (AI Personal Trainer)</h2>
+              <h2 className="text-sm sm:text-base font-black text-white">Coach Max (AI Personal Trainer)</h2>
               <span className="text-[10px] px-2.5 py-0.5 rounded-full liquid-glass-cyan text-cyan-300 font-bold border border-cyan-500/30">
                 Gemini Vision & TTS
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">Tư vấn ăn uống, tập luyện & áp dụng bữa ăn vào Tracker</p>
+            <p className="text-[11px] sm:text-xs text-slate-300/80">Tư vấn ăn uống, tính calo, bài tập & áp dụng bữa ăn vào Tracker</p>
           </div>
         </div>
 
@@ -331,17 +331,18 @@ export const CoachView: React.FC<CoachViewProps> = ({
           <button
             type="button"
             onClick={() => setIsCallOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-emerald-400 hover:brightness-110 text-slate-950 font-black rounded-xl text-xs transition shadow-lg shadow-cyan-500/25 active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-400 hover:brightness-110 text-slate-950 font-black rounded-xl text-xs sm:text-sm transition shadow-lg shadow-cyan-500/25 active:scale-95"
             title="Gọi thoại trực tiếp với Coach Max"
           >
-            <PhoneCall className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Gọi Coach</span>
+            <PhoneCall className="w-4 h-4 stroke-[2.5]" />
+            <span className="hidden sm:inline">Gọi Coach</span>
+            <span className="sm:hidden">Gọi</span>
           </button>
 
           <button
             type="button"
             onClick={handleClearChat}
-            className="p-2 rounded-xl text-slate-400 hover:text-rose-400 liquid-glass-btn transition"
+            className="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-rose-400 liquid-glass-btn transition"
             title="Xóa lịch sử trò chuyện"
           >
             <Trash2 className="w-4 h-4" />
@@ -351,60 +352,62 @@ export const CoachView: React.FC<CoachViewProps> = ({
 
       {/* Toast Notification when Meal is Applied */}
       {justAppliedMealName && (
-        <div className="mb-2 p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500/50 flex items-center justify-between text-xs text-emerald-300 animate-fade-in shadow-lg shrink-0">
+        <div className="mb-2 p-3 rounded-2xl liquid-glass-emerald border border-emerald-500/50 flex items-center justify-between text-xs sm:text-sm text-emerald-200 animate-liquid-message shadow-lg shrink-0">
           <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-400" />
+            <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />
             <span>Đã thêm <strong>{justAppliedMealName}</strong> vào Tracker thành công!</span>
           </div>
           {onNavigateToTab && (
             <button
               onClick={() => onNavigateToTab('food')}
-              className="text-cyan-300 hover:text-white underline font-bold flex items-center gap-1"
+              className="text-cyan-300 hover:text-white underline font-bold flex items-center gap-1 ml-2 shrink-0"
             >
-              Mở Tracker <ArrowRight className="w-3 h-3" />
+              Mở Tracker <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
       )}
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto space-y-3.5 p-2 rounded-2xl pr-1">
+      <div className="flex-1 overflow-y-auto space-y-4 p-2 sm:p-4 rounded-3xl pr-1.5 scroll-smooth">
         
         {messages.map((m) => {
           const isUser = m.sender === 'user';
           return (
             <div
               key={m.id}
-              className={`flex items-start gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
+              className={`flex items-start gap-3 sm:gap-3.5 animate-liquid-message ${
+                isUser ? 'flex-row-reverse max-w-[88%] sm:max-w-[80%] ml-auto' : 'flex-row w-full max-w-full sm:max-w-[96%]'
+              }`}
             >
               {/* Avatar */}
               <div
-                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold ${
+                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 font-bold shadow-md ${
                   isUser
-                    ? 'bg-emerald-500 text-slate-950'
-                    : 'bg-slate-800 text-cyan-400 border border-slate-700'
+                    ? 'bg-gradient-to-tr from-emerald-400 to-teal-500 text-slate-950 shadow-emerald-500/20'
+                    : 'bg-gradient-to-tr from-cyan-500 to-emerald-400 text-slate-950 shadow-cyan-500/20'
                 }`}
               >
-                {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                {isUser ? <User className="w-4 h-4 stroke-[2.5]" /> : <Bot className="w-5 h-5 stroke-[2.5]" />}
               </div>
 
               {/* Message Bubble Container */}
-              <div className="max-w-[88%] sm:max-w-[78%] space-y-2">
+              <div className={isUser ? 'space-y-2' : 'flex-1 space-y-3 min-w-0'}>
                 
                 <div
-                  className={`rounded-[22px] px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-lg ${
+                  className={`rounded-[24px] px-4 sm:px-5 py-3 sm:py-4 text-sm sm:text-[15px] leading-relaxed sm:leading-7 shadow-xl ${
                     isUser
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold rounded-tr-sm shadow-emerald-500/20 whitespace-pre-wrap'
-                      : 'liquid-glass rounded-tl-sm border border-white/10 text-slate-200'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-semibold rounded-tr-md shadow-emerald-500/20 whitespace-pre-wrap'
+                      : 'liquid-glass-card rounded-tl-md border border-white/12 text-slate-100 backdrop-blur-2xl'
                   }`}
                 >
                   {/* Attached Image Preview if Sent by User */}
                   {m.imageUrl && (
-                    <div className="mb-2.5 overflow-hidden rounded-xl border border-white/20 shadow-md">
+                    <div className="mb-3 overflow-hidden rounded-2xl border border-white/20 shadow-md">
                       <img
                         src={m.imageUrl}
                         alt="Đính kèm"
-                        className="max-h-52 w-auto object-cover rounded-xl"
+                        className="max-h-60 sm:max-h-80 w-auto object-cover rounded-2xl"
                       />
                     </div>
                   )}
@@ -412,41 +415,41 @@ export const CoachView: React.FC<CoachViewProps> = ({
                   {isUser ? (
                     m.text
                   ) : (
-                    <div className="coach-markdown space-y-2">
+                    <div className="coach-markdown space-y-2.5">
                       <ReactMarkdown
                         components={{
                           h1: ({node, ...props}) => (
-                            <h1 className="text-sm sm:text-base font-black text-white mt-3 mb-1.5 border-b border-slate-700/80 pb-1 flex items-center gap-1.5" {...props} />
+                            <h1 className="text-base sm:text-lg font-black text-white mt-3.5 mb-2 border-b border-white/10 pb-1.5 flex items-center gap-2" {...props} />
                           ),
                           h2: ({node, ...props}) => (
-                            <h2 className="text-xs sm:text-sm font-extrabold text-cyan-300 mt-2.5 mb-1 flex items-center gap-1" {...props} />
+                            <h2 className="text-sm sm:text-base font-extrabold text-cyan-300 mt-3 mb-1.5 flex items-center gap-1.5" {...props} />
                           ),
                           h3: ({node, ...props}) => (
-                            <h3 className="text-xs sm:text-sm font-bold text-emerald-400 mt-2 mb-1" {...props} />
+                            <h3 className="text-xs sm:text-sm font-bold text-emerald-300 mt-2.5 mb-1" {...props} />
                           ),
                           p: ({node, ...props}) => (
-                            <p className="leading-relaxed text-slate-200 my-1 text-xs sm:text-sm" {...props} />
+                            <p className="leading-relaxed sm:leading-7 text-slate-200 my-1.5 text-sm sm:text-[15px]" {...props} />
                           ),
                           ul: ({node, ...props}) => (
-                            <ul className="space-y-1.5 my-1.5 ml-4 list-disc text-slate-300 text-xs sm:text-sm" {...props} />
+                            <ul className="space-y-2 my-2 ml-5 list-disc text-slate-200 text-sm sm:text-[15px]" {...props} />
                           ),
                           ol: ({node, ...props}) => (
-                            <ol className="space-y-1.5 my-1.5 ml-4 list-decimal text-slate-300 text-xs sm:text-sm" {...props} />
+                            <ol className="space-y-2 my-2 ml-5 list-decimal text-slate-200 text-sm sm:text-[15px]" {...props} />
                           ),
                           li: ({node, ...props}) => (
-                            <li className="leading-relaxed pl-0.5" {...props} />
+                            <li className="leading-relaxed sm:leading-7 pl-0.5" {...props} />
                           ),
                           strong: ({node, ...props}) => (
-                            <strong className="font-bold text-white bg-slate-800/80 px-1.5 py-0.5 rounded text-[92%] border border-slate-700/50" {...props} />
+                            <strong className="font-extrabold text-white bg-white/10 px-1.5 py-0.5 rounded-md border border-white/10" {...props} />
                           ),
                           em: ({node, ...props}) => (
                             <em className="italic text-cyan-200 font-normal" {...props} />
                           ),
                           blockquote: ({node, ...props}) => (
-                            <blockquote className="border-l-2 border-emerald-500 pl-3 my-2 text-slate-300 italic bg-slate-950/60 py-1.5 rounded-r text-xs" {...props} />
+                            <blockquote className="border-l-3 border-emerald-400 pl-3.5 my-2.5 text-slate-300 italic bg-white/[0.03] py-2 rounded-r-xl text-xs sm:text-sm" {...props} />
                           ),
                           code: ({node, ...props}) => (
-                            <code className="bg-slate-950 px-1.5 py-0.5 rounded font-mono text-[11px] text-cyan-300 border border-slate-800" {...props} />
+                            <code className="bg-slate-950 px-2 py-0.5 rounded-md font-mono text-xs text-cyan-300 border border-slate-800" {...props} />
                           )
                         }}
                       >
@@ -482,14 +485,14 @@ export const CoachView: React.FC<CoachViewProps> = ({
                     </div>
 
                     {/* Meals preview list */}
-                    <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
                       {m.suggestedMealPlan.meals.map((sMeal) => (
-                        <div key={sMeal.id} className="bg-slate-950/80 p-2 rounded-xl border border-slate-800">
-                          <div className="text-[10px] text-slate-400 uppercase font-bold">
-                            {sMeal.mealType === 'breakfast' ? 'Sáng' : sMeal.mealType === 'lunch' ? 'Trưa' : sMeal.mealType === 'dinner' ? 'Tối' : 'Phụ'} • {sMeal.calories} kcal
+                        <div key={sMeal.id} className="liquid-glass p-2.5 rounded-xl border border-white/10">
+                          <div className="text-[10px] text-slate-300 uppercase font-black">
+                            {sMeal.mealType === 'breakfast' ? 'Sáng' : sMeal.mealType === 'lunch' ? 'Trưa' : sMeal.mealType === 'dinner' ? 'Tối' : 'Phụ'} • <span className="text-emerald-300">{sMeal.calories} kcal</span>
                           </div>
-                          <div className="font-semibold text-white truncate text-[11px] mt-0.5">{sMeal.name}</div>
-                          <div className="text-[10px] text-amber-400 mt-0.5">~{(sMeal.estimatedCostVnd || 20000).toLocaleString('vi-VN')} đ</div>
+                          <div className="font-bold text-white truncate text-xs mt-1">{sMeal.name}</div>
+                          <div className="text-[10px] text-amber-300 font-mono mt-0.5">~{(sMeal.estimatedCostVnd || 20000).toLocaleString('vi-VN')} đ</div>
                         </div>
                       ))}
                     </div>
@@ -686,27 +689,28 @@ export const CoachView: React.FC<CoachViewProps> = ({
       )}
 
       {/* Quick Suggestion Pills */}
-      <div className="py-2 overflow-x-auto no-scrollbar flex items-center gap-1.5 shrink-0">
+      <div className="py-2.5 overflow-x-auto no-scrollbar flex items-center gap-2 shrink-0">
         {QUICK_QUESTIONS.map((q, idx) => (
           <button
             key={idx}
             type="button"
             onClick={() => handleSendMessage(q)}
             disabled={isLoading}
-            className="text-[11px] whitespace-nowrap px-3.5 py-1.5 liquid-glass hover:bg-white/[0.08] text-slate-300 hover:text-emerald-300 border border-white/10 rounded-full transition shrink-0 font-medium"
+            className="text-xs whitespace-nowrap px-4 py-2 liquid-glass hover:bg-white/[0.08] text-slate-200 hover:text-emerald-300 border border-white/10 rounded-2xl transition shrink-0 font-medium active:scale-95 shadow-md flex items-center gap-1.5"
           >
-            {q}
+            <Sparkles className="w-3 h-3 text-emerald-400" />
+            <span>{q}</span>
           </button>
         ))}
       </div>
 
-      {/* Input Form Bar with Photo Upload */}
+      {/* Input Form Bar with Photo Upload & Roomy Auto-Expanding Textarea */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           handleSendMessage();
         }}
-        className="liquid-glass-dock rounded-[24px] p-2 flex items-center gap-2 border border-white/15 shadow-2xl shrink-0"
+        className="liquid-glass-dock rounded-[28px] p-2 sm:p-2.5 flex items-end gap-2 sm:gap-2.5 border border-white/15 shadow-2xl shrink-0"
       >
         {/* Hidden File Input for Camera/Gallery */}
         <input
@@ -722,31 +726,44 @@ export const CoachView: React.FC<CoachViewProps> = ({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading}
-          className={`p-2.5 rounded-2xl border transition shrink-0 flex items-center justify-center ${
+          className={`p-3 rounded-2xl border transition shrink-0 flex items-center justify-center ${
             selectedImage
-              ? 'liquid-glass-cyan text-cyan-300 border-cyan-400/50'
+              ? 'liquid-glass-cyan text-cyan-300 border-cyan-400/50 shadow-md shadow-cyan-500/20'
               : 'liquid-glass-btn text-slate-300 hover:text-white'
           }`}
           title="Chụp hoặc tải ảnh món ăn / thể hình"
         >
-          <Camera className="w-4 h-4 stroke-[2.2]" />
+          <Camera className="w-5 h-5 stroke-[2.2]" />
         </button>
 
-        <input
-          type="text"
-          placeholder="Nhập nay ăn gì, tập gì hoặc gửi ảnh món ăn..."
+        {/* Multi-line Auto-Expanding Textarea */}
+        <textarea
+          rows={1}
+          placeholder="Nhập món ăn, bài tập hoặc hỏi Coach Max... (Nhấn Enter để gửi)"
           value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
+          onChange={(e) => {
+            setInputMessage(e.target.value);
+            e.target.style.height = 'auto';
+            e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSendMessage();
+            }
+          }}
           disabled={isLoading}
-          className="flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-white placeholder:text-slate-400 focus:outline-none font-medium"
+          className="flex-1 bg-transparent px-3 py-2 text-sm sm:text-base text-white placeholder:text-slate-400 focus:outline-none resize-none max-h-32 font-medium leading-relaxed"
         />
 
+        {/* Send Button */}
         <button
           type="submit"
           disabled={isLoading || (!inputMessage.trim() && !selectedImage)}
-          className="p-2.5 bg-gradient-to-r from-emerald-500 to-teal-400 hover:brightness-110 disabled:opacity-30 disabled:pointer-events-none text-slate-950 font-black rounded-2xl transition shadow-lg shadow-emerald-500/25 shrink-0 active:scale-95"
+          className="p-3 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 hover:brightness-110 disabled:opacity-30 disabled:pointer-events-none text-slate-950 font-black rounded-2xl transition shadow-xl shadow-emerald-500/25 shrink-0 active:scale-95"
+          title="Gửi tin nhắn"
         >
-          <Send className="w-4 h-4 stroke-[2.5]" />
+          <Send className="w-5 h-5 stroke-[2.5]" />
         </button>
       </form>
 

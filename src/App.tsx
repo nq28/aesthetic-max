@@ -44,7 +44,18 @@ export const App: React.FC = () => {
     return storageService.getTodayWater();
   });
 
+  const TABS: ('dashboard' | 'food' | 'looksmax' | 'coach' | 'plan')[] = ['dashboard', 'food', 'looksmax', 'coach', 'plan'];
   const [activeTab, setActiveTab] = useState<'dashboard' | 'food' | 'looksmax' | 'coach' | 'plan'>('dashboard');
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('left');
+
+  const handleTabChange = (newTab: 'dashboard' | 'food' | 'looksmax' | 'coach' | 'plan') => {
+    if (newTab === activeTab) return;
+    const prevIdx = TABS.indexOf(activeTab);
+    const nextIdx = TABS.indexOf(newTab);
+    setSlideDirection(nextIdx >= prevIdx ? 'left' : 'right');
+    setActiveTab(newTab);
+  };
+
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
 
   // Daily Streak Record on App Mount
@@ -254,15 +265,18 @@ export const App: React.FC = () => {
             />
 
             {/* Main Content Area with Bottom Padding for Floating Liquid Dock */}
-            <main className={`flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 pb-28 sm:pb-32 ${isPhoneFrame ? 'overflow-y-auto' : ''}`}>
-              <div key={activeTab} className="transition-all duration-300">
+            <main className={`flex-1 ${activeTab === 'coach' ? 'max-w-5xl' : 'max-w-4xl'} w-full mx-auto p-3 sm:p-6 pb-28 sm:pb-32 transition-all duration-300 ${isPhoneFrame ? 'overflow-y-auto' : ''}`}>
+              <div 
+                key={activeTab} 
+                className={slideDirection === 'left' ? 'animate-liquid-slide-left' : 'animate-liquid-slide-right'}
+              >
                 {activeTab === 'dashboard' && (
                   <DashboardView
                     userProfile={userProfile}
                     todayFoodItems={todayFoodItems}
                     nutrients={nutrients}
                     currentPlan={currentPlan}
-                    onNavigate={setActiveTab}
+                    onNavigate={handleTabChange}
                     onWaterUpdate={setWaterAmount}
                     waterAmount={waterAmount}
                   />
@@ -296,7 +310,7 @@ export const App: React.FC = () => {
                     currentPlan={currentPlan}
                     todayFoodItems={todayFoodItems}
                     onFoodAdded={handleFoodAdded}
-                    onNavigateToTab={setActiveTab}
+                    onNavigateToTab={handleTabChange}
                   />
                 )}
 
@@ -305,7 +319,7 @@ export const App: React.FC = () => {
                     currentPlan={currentPlan}
                     userProfile={userProfile}
                     onPlanUpdate={handlePlanUpdate}
-                    onNavigate={setActiveTab}
+                    onNavigate={handleTabChange}
                   />
                 )}
               </div>
@@ -314,7 +328,7 @@ export const App: React.FC = () => {
             {/* Floating Liquid Glass Bottom Navigation */}
             <BottomNav 
               activeTab={activeTab} 
-              onTabChange={setActiveTab} 
+              onTabChange={handleTabChange} 
               isPhoneFrame={isPhoneFrame} 
             />
 

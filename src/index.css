@@ -249,3 +249,64 @@ body {
   background-clip: text;
   animation: shimmer-sweep 6s linear infinite;
 }
+
+/* ==========================================================================
+   LIQUID SLIDE & GLIDE VIEW TRANSITIONS
+   ========================================================================== */
+
+@keyframes liquid-glide-left {
+  0% {
+    opacity: 0;
+    transform: translateX(54px) scale(0.975);
+    filter: blur(14px);
+  }
+  60% {
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0px) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes liquid-glide-right {
+  0% {
+    opacity: 0;
+    transform: translateX(-54px) scale(0.975);
+    filter: blur(14px);
+  }
+  60% {
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0px) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes liquid-message-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+    filter: blur(0px);
+  }
+}
+
+.animate-liquid-slide-left {
+  animation: liquid-glide-left 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-liquid-slide-right {
+  animation: liquid-glide-right 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-liquid-message {
+  animation: liquid-message-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
