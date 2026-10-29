@@ -214,35 +214,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* 1. Daily Streak System & Start Date Milestone Banner */}
-      <div className="liquid-glass-amber rounded-[28px] p-5 shadow-2xl relative overflow-hidden group">
+      <div className="liquid-glass-amber rounded-[28px] p-4 sm:p-5 shadow-2xl relative overflow-hidden group">
         {/* Ambient Top Glow */}
         <div className="absolute inset-x-8 top-0 h-[1px] bg-gradient-to-r from-transparent via-amber-300/50 to-transparent pointer-events-none"></div>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
           
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-400 to-amber-300 flex items-center justify-center text-slate-950 font-black shadow-[0_0_25px_rgba(251,191,36,0.5)] border border-white/40 text-xl group-hover:scale-105 transition-transform">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-400 to-amber-300 flex items-center justify-center text-slate-950 font-black shadow-[0_0_25px_rgba(251,191,36,0.5)] border border-white/40 text-xl group-hover:scale-105 transition-transform shrink-0">
               🔥
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-base font-black text-white tracking-tight">
                   Chuỗi {streakData.currentStreak} Ngày Liên Tiếp
                 </h3>
-                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-200 font-bold border border-amber-400/40 shadow-[0_0_10px_rgba(251,191,36,0.25)]">
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-200 font-bold border border-amber-400/40 shadow-[0_0_10px_rgba(251,191,36,0.25)] shrink-0">
                   Kỷ lục: {streakData.longestStreak} ngày
                 </span>
               </div>
-              <p className="text-xs text-amber-100/80 mt-1">
-                Bắt đầu từ <strong>{startDate}</strong> • Đang ở <strong>Ngày thứ {daysElapsed}</strong> lột xác ngoại hình
+              <p className="text-xs text-amber-100/80 mt-1 truncate sm:whitespace-normal">
+                Bắt đầu từ <strong>{startDate}</strong> • Đang ở <strong>Ngày thứ {daysElapsed}</strong> lột xác
               </p>
             </div>
           </div>
 
           {/* 7-Day Mini Streak Dots */}
-          <div className="flex items-center gap-1.5 self-center sm:self-auto liquid-glass rounded-2xl px-3.5 py-2 border border-white/10 shadow-inner">
+          <div className="flex items-center justify-between w-full md:w-auto gap-1.5 liquid-glass rounded-2xl px-3.5 py-2 border border-white/10 shadow-inner shrink-0">
             {last7Days.map((d, i) => (
-              <div key={i} className="flex flex-col items-center">
+              <div key={i} className="flex flex-col items-center flex-1 md:flex-initial">
                 <span className="text-[9px] text-slate-400 font-semibold">{d.dayName}</span>
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs mt-1 font-black transition-all duration-300 ${
@@ -262,75 +262,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* 2. Main Calories & Ring Widget (Flagship Liquid Glass Card) */}
-      <div className="liquid-glass-card rounded-[32px] p-6 sm:p-7 relative overflow-hidden group">
+      <div className="liquid-glass-card rounded-[32px] p-5 sm:p-7 relative overflow-hidden group">
         {/* Specular Top Border Light Sheen */}
         <div className="absolute inset-x-12 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none"></div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6">
           
           {/* Calorie Stats */}
-          <div className="space-y-3.5 text-center sm:text-left flex-1">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full liquid-glass-btn text-slate-200 text-xs font-semibold">
-              <Flame className="w-4 h-4 text-emerald-400 shadow-[0_0_10px_#34d399]" />
+          <div className="space-y-3 text-center sm:text-left flex-1 min-w-0 w-full sm:w-auto">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full liquid-glass-btn text-slate-200 text-xs font-semibold whitespace-nowrap shadow-sm">
+              <Flame className="w-4 h-4 text-emerald-400 shadow-[0_0_10px_#34d399] shrink-0" />
               <span>Năng Lượng Mục Tiêu Mỗi Ngày</span>
             </div>
 
             <div>
               <div className="flex items-baseline justify-center sm:justify-start gap-2.5">
-                <span className="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_2px_12px_rgba(255,255,255,0.2)]">
+                <span className="text-4xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_2px_12px_rgba(255,255,255,0.2)]">
                   {totalCalories}
                 </span>
-                <span className="text-base font-semibold text-slate-400">/ {targetCalories} kcal</span>
+                <span className="text-sm sm:text-base font-semibold text-slate-400">/ {targetCalories} kcal</span>
               </div>
-              <p className="text-xs text-slate-300/80 mt-1.5">
-                Còn lại <strong className="text-emerald-300 font-bold drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]">{remainingCalories} kcal</strong> để hoàn thành mục tiêu siết nét cơ thể.
+              <p className="text-xs sm:text-sm text-slate-300/80 mt-1">
+                Còn lại <strong className="text-emerald-300 font-bold drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]">{remainingCalories} kcal</strong> để hoàn thành mục tiêu siết nét.
               </p>
-            </div>
-
-            {/* Macros Quick Bar */}
-            <div className="grid grid-cols-3 gap-2.5 pt-2 max-w-sm mx-auto sm:mx-0">
-              {/* Protein */}
-              <div className="liquid-glass rounded-2xl p-2.5 border border-cyan-500/25">
-                <span className="text-cyan-400/80 text-[10px] font-bold block tracking-wider uppercase">ĐẠM (P)</span>
-                <span className="text-cyan-300 font-black text-base">{proteinTotal}g</span>
-                <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1.5">
-                  <div 
-                    className="h-full rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee] transition-all duration-500"
-                    style={{ width: `${Math.min(100, (proteinTotal / (currentPlan?.proteinTarget || Math.round(userProfile.weight * 2))) * 100)}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Carbs */}
-              <div className="liquid-glass rounded-2xl p-2.5 border border-amber-500/25">
-                <span className="text-amber-400/80 text-[10px] font-bold block tracking-wider uppercase">CARB (C)</span>
-                <span className="text-amber-300 font-black text-base">{carbsTotal}g</span>
-                <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1.5">
-                  <div 
-                    className="h-full rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] transition-all duration-500"
-                    style={{ width: `${Math.min(100, (carbsTotal / (currentPlan?.carbTarget || Math.round(userProfile.weight * 2.5))) * 100)}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Fat */}
-              <div className="liquid-glass rounded-2xl p-2.5 border border-rose-500/25">
-                <span className="text-rose-400/80 text-[10px] font-bold block tracking-wider uppercase">BÉO (F)</span>
-                <span className="text-rose-300 font-black text-base">{fatTotal}g</span>
-                <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1.5">
-                  <div 
-                    className="h-full rounded-full bg-rose-400 shadow-[0_0_8px_#fb7185] transition-all duration-500"
-                    style={{ width: `${Math.min(100, (fatTotal / (currentPlan?.fatTarget || Math.round(userProfile.weight * 0.8))) * 100)}%` }}
-                  ></div>
-                </div>
-              </div>
             </div>
           </div>
 
           {/* Radial Calorie Visualizer with Glass Specular Reflection */}
-          <div className="relative w-40 h-40 sm:w-44 sm:h-44 flex items-center justify-center shrink-0">
+          <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center shrink-0">
             {/* Ambient Behind Glow */}
-            <div className="absolute inset-4 rounded-full bg-emerald-500/15 blur-xl"></div>
+            <div className="absolute inset-3 sm:inset-4 rounded-full bg-emerald-500/15 blur-xl"></div>
 
             <svg className="w-full h-full -rotate-90 relative z-10" viewBox="0 0 100 100">
               <defs>
@@ -364,34 +325,80 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </svg>
 
             <div className="absolute flex flex-col items-center z-20">
-              <span className="text-3xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              <span className="text-2xl sm:text-3xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                 {caloriePercent}%
               </span>
-              <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest mt-0.5">
+              <span className="text-[9px] sm:text-[10px] font-bold text-emerald-300 uppercase tracking-widest mt-0.5">
                 ĐÃ NẠP
               </span>
             </div>
           </div>
 
         </div>
+
+        {/* Macros Quick Bar - FULL WIDTH BELOW so it NEVER squishes! */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3.5 pt-4 mt-4 border-t border-white/[0.08] w-full">
+          {/* Protein */}
+          <div className="liquid-glass rounded-2xl p-2.5 sm:p-3 border border-cyan-500/25">
+            <div className="flex items-center justify-between">
+              <span className="text-cyan-400/90 text-[10px] sm:text-xs font-bold tracking-wider uppercase">ĐẠM (P)</span>
+              <span className="text-cyan-300 font-black text-sm sm:text-base">{proteinTotal}g</span>
+            </div>
+            <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1.5 sm:mt-2">
+              <div 
+                className="h-full rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee] transition-all duration-500"
+                style={{ width: `${Math.min(100, (proteinTotal / (currentPlan?.proteinTarget || Math.round(userProfile.weight * 2))) * 100)}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Carbs */}
+          <div className="liquid-glass rounded-2xl p-2.5 sm:p-3 border border-amber-500/25">
+            <div className="flex items-center justify-between">
+              <span className="text-amber-400/90 text-[10px] sm:text-xs font-bold tracking-wider uppercase">CARB (C)</span>
+              <span className="text-amber-300 font-black text-sm sm:text-base">{carbsTotal}g</span>
+            </div>
+            <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1.5 sm:mt-2">
+              <div 
+                className="h-full rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] transition-all duration-500"
+                style={{ width: `${Math.min(100, (carbsTotal / (currentPlan?.carbTarget || Math.round(userProfile.weight * 2.5))) * 100)}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Fat */}
+          <div className="liquid-glass rounded-2xl p-2.5 sm:p-3 border border-rose-500/25">
+            <div className="flex items-center justify-between">
+              <span className="text-rose-400/90 text-[10px] sm:text-xs font-bold tracking-wider uppercase">BÉO (F)</span>
+              <span className="text-rose-300 font-black text-sm sm:text-base">{fatTotal}g</span>
+            </div>
+            <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1.5 sm:mt-2">
+              <div 
+                className="h-full rounded-full bg-rose-400 shadow-[0_0_8px_#fb7185] transition-all duration-500"
+                style={{ width: `${Math.min(100, (fatTotal / (currentPlan?.fatTarget || Math.round(userProfile.weight * 0.8))) * 100)}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* 3. Estimated Burned Calories (~kg bodyweight) & Deficit / Fat Loss Projection */}
       <div className="liquid-glass-card rounded-[28px] p-5 space-y-4 shadow-2xl relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.3)] shrink-0">
               <Activity className="w-5 h-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
                 Ước Tính Calo Đốt Cháy Hôm Nay (~{userProfile.weight}kg)
               </h3>
-              <p className="text-[11px] text-slate-400">Tính toán thể trạng BMR & các bài tập ghi nhận trong ngày</p>
+              <p className="text-[11px] text-slate-400 truncate sm:whitespace-normal">Tính toán thể trạng BMR & các bài tập ghi nhận trong ngày</p>
             </div>
           </div>
           
-          <span className="px-3 py-1 rounded-full liquid-glass-btn text-orange-300 border-orange-500/40 text-xs font-black shadow-[0_0_12px_rgba(249,115,22,0.25)]">
+          <span className="px-3 py-1 rounded-full liquid-glass-btn text-orange-300 border-orange-500/40 text-xs font-black shadow-[0_0_12px_rgba(249,115,22,0.25)] shrink-0 whitespace-nowrap self-start sm:self-auto">
             ~{totalBurnedToday} kcal tiêu thụ
           </span>
         </div>

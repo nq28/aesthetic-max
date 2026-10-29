@@ -39,9 +39,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {userProfile && (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full liquid-glass-btn text-[11px] font-semibold text-slate-200">
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full liquid-glass-btn text-[11px] font-semibold text-slate-200 shrink-0">
               <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse"></span>
               <span>{userProfile.weight}kg</span>
               <span className="text-white/20">•</span>
@@ -53,15 +53,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={onTogglePhoneFrame}
-              className={`p-2 rounded-2xl border transition-all duration-200 hidden md:flex items-center gap-1.5 text-xs font-semibold ${
+              className={`p-2 sm:px-3 sm:py-2 rounded-2xl border transition-all duration-200 hidden md:flex items-center gap-1.5 text-xs font-semibold shrink-0 whitespace-nowrap ${
                 isPhoneFrame
                   ? 'liquid-pill-active text-emerald-300'
                   : 'liquid-glass-btn text-slate-300 hover:text-white'
               }`}
               title="Bật/Tắt Giả lập màn hình điện thoại Android"
             >
-              <Smartphone className="w-4 h-4" />
-              <span className="text-[11px]">{isPhoneFrame ? 'Khung Điện Thoại' : 'Khung Điện Thoại'}</span>
+              <Smartphone className="w-4 h-4 shrink-0" />
+              <span className="hidden xl:inline text-[11px] whitespace-nowrap">{isPhoneFrame ? 'Khung Mobile' : 'Khung Mobile'}</span>
             </button>
           )}
 

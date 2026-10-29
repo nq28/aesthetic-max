@@ -231,7 +231,7 @@ export const App: React.FC = () => {
 
         {/* Main App Layout */}
         {userProfile && (
-          <div className={isPhoneFrame ? 'w-full max-w-[420px] h-[870px] border-[8px] border-slate-700/80 rounded-[48px] shadow-2xl relative overflow-hidden flex flex-col bg-[#05070b] ring-1 ring-white/10' : 'w-full flex flex-col min-h-screen'}>
+          <div className={isPhoneFrame ? 'w-full max-w-[440px] h-[880px] border-[8px] border-slate-700/80 rounded-[48px] shadow-2xl relative overflow-hidden flex flex-col bg-[#05070b] ring-1 ring-white/10' : 'w-full flex flex-col min-h-screen'}>
             
             {/* Phone Frame Ambient Blobs */}
             {isPhoneFrame && (
@@ -265,7 +265,7 @@ export const App: React.FC = () => {
             />
 
             {/* Main Content Area with Bottom Padding for Floating Liquid Dock */}
-            <main className={`flex-1 ${activeTab === 'coach' ? 'max-w-5xl' : 'max-w-4xl'} w-full mx-auto p-3 sm:p-6 pb-28 sm:pb-32 transition-all duration-300 ${isPhoneFrame ? 'overflow-y-auto' : ''}`}>
+            <main className={`flex-1 ${activeTab === 'coach' ? 'max-w-5xl' : 'max-w-4xl'} w-full mx-auto ${isPhoneFrame ? 'p-3 pb-24 overflow-y-auto' : 'p-3 sm:p-6 pb-28 sm:pb-32'} transition-all duration-300`}>
               <div 
                 key={activeTab} 
                 className={slideDirection === 'left' ? 'animate-liquid-slide-left' : 'animate-liquid-slide-right'}
