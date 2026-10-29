@@ -45,6 +45,7 @@ export interface FoodItem {
   timestamp: number;
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   photoUrl?: string;
+  photoUrls?: string[]; // Array of multiple photos if multi-image meal scan
   calories: number;
   nutrients: Record<string, number>; // nutrient id -> quantity
   aiNotes?: string;
@@ -180,6 +181,7 @@ export interface CoachMessage {
   text: string;
   timestamp: number;
   imageUrl?: string;
+  imageUrls?: string[];
   detectedMeals?: DetectedMealItem[];
   suggestedMealPlan?: DailyMealPlan;
   suggestedPlanApplied?: boolean;

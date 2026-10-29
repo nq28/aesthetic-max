@@ -27,6 +27,7 @@ interface DashboardViewProps {
   onNavigate: (tab: 'dashboard' | 'food' | 'looksmax' | 'coach' | 'plan') => void;
   onWaterUpdate: (newAmount: number) => void;
   waterAmount: number;
+  isPhoneFrame?: boolean;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -36,7 +37,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   currentPlan,
   onNavigate,
   onWaterUpdate,
-  waterAmount
+  waterAmount,
+  isPhoneFrame
 }) => {
   // Streak & Start Date
   const [streakData, setStreakData] = useState<StreakData>(() => storageService.getStreakData());

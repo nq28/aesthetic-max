@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Maximize2 } from 'lucide-react';
 import { UserProfile, FoodItem, NutrientDefinition, SmartPlan, ThemeSettings } from './types';
 import { storageService } from './services/storageService';
 import { Navbar } from './components/Navbar';
@@ -222,11 +223,30 @@ export const App: React.FC = () => {
       </div>
 
       <div className={`relative z-10 flex flex-col min-h-screen transition-all ${
-        isPhoneFrame ? 'items-center justify-center p-2 sm:p-6 bg-black/70 min-h-screen' : ''
+        isPhoneFrame ? 'items-center justify-center p-2 sm:p-6 bg-black/85 min-h-screen' : ''
       }`}>
         {/* Onboarding Flow: Triggered if no user profile exists */}
         {!userProfile && (
           <OnboardingModal onComplete={handleOnboardingComplete} />
+        )}
+
+        {/* Floating Desktop Frame Control (Rendered OUTSIDE the mobile phone screen so the phone is 100% pure) */}
+        {isPhoneFrame && userProfile && (
+          <div className="mb-3 hidden md:flex items-center justify-between w-full max-w-[440px] px-4 py-2 rounded-2xl bg-slate-900/90 border border-white/10 backdrop-blur-xl shadow-2xl text-xs text-slate-300 z-50">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span className="font-semibold text-white tracking-wide">Mô phỏng Mobile UI</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPhoneFrame(false)}
+              className="px-3 py-1 rounded-xl liquid-glass-btn text-cyan-300 hover:text-white flex items-center gap-1.5 font-semibold transition-all hover:scale-105 active:scale-95 shadow-md border border-cyan-500/30"
+              title="Quay lại giao diện toàn màn hình máy tính"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span>Toàn màn hình</span>
+            </button>
+          </div>
         )}
 
         {/* Main App Layout */}
@@ -279,6 +299,7 @@ export const App: React.FC = () => {
                     onNavigate={handleTabChange}
                     onWaterUpdate={setWaterAmount}
                     waterAmount={waterAmount}
+                    isPhoneFrame={isPhoneFrame}
                   />
                 )}
 

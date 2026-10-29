@@ -61,7 +61,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
   });
 
   const [inputMessage, setInputMessage] = useState<string>('');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCallOpen, setIsCallOpen] = useState<boolean>(false);
   const [justAppliedMealName, setJustAppliedMealName] = useState<string | null>(null);
@@ -75,38 +75,47 @@ export const CoachView: React.FC<CoachViewProps> = ({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading, selectedImage]);
+  }, [messages, isLoading, selectedImages]);
 
-  // Handle Image File Selection
+  // Handle Multi-Image File Selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Kích thước ảnh quá lớn (>10MB). Vui lòng chọn ảnh nhẹ hơn!');
-      return;
-    }
+    const fileList = Array.from(files);
+    const readers = fileList.map(file => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setSelectedImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    Promise.all(readers).then(newImages => {
+      setSelectedImages(prev => [...prev, ...newImages].slice(0, 5));
+    });
     e.target.value = '';
+  };
+
+  const handleRemoveSelectedImage = (idxToRemove: number) => {
+    setSelectedImages(prev => prev.filter((_, idx) => idx !== idxToRemove));
   };
 
   // Send message to Coach
   const handleSendMessage = async (textToSend?: string) => {
     const msg = (textToSend || inputMessage).trim();
-    if ((!msg && !selectedImage) || isLoading) return;
+    if ((!msg && selectedImages.length === 0) || isLoading) return;
 
-    const currentImage = selectedImage;
+    const currentImages = [...selectedImages];
 
     const userMsg: CoachMessage = {
       id: 'msg_' + Date.now(),
       sender: 'user',
-      text: msg || (currentImage ? '📸 [Ảnh đính kèm phân tích món ăn / thể hình]' : ''),
-      imageUrl: currentImage || undefined,
+      text: msg || (currentImages.length > 0 ? `📸 [Đã gửi ${currentImages.length} ảnh món ăn / thể hình]` : ''),
+      imageUrl: currentImages[0] || undefined,
+      imageUrls: currentImages.length > 0 ? currentImages : undefined,
       timestamp: Date.now()
     };
 
@@ -114,7 +123,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
     setMessages(nextMessages);
     storageService.saveCoachMessages(nextMessages);
     setInputMessage('');
-    setSelectedImage(null);
+    setSelectedImages([]);
     setIsLoading(true);
 
     try {
@@ -136,7 +145,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
           latestLooksmax,
           dailyMealPlan: storageService.getDailyMealPlan()
         },
-        currentImage || undefined
+        currentImages.length > 0 ? currentImages : undefined
       );
 
       const coachMsg: CoachMessage = {
@@ -402,7 +411,15 @@ export const CoachView: React.FC<CoachViewProps> = ({
                   }`}
                 >
                   {/* Attached Image Preview if Sent by User */}
-                  {m.imageUrl && (
+                  {m.imageUrls && m.imageUrls.length > 0 ? (
+                    <div className={`mb-3 grid gap-2 ${m.imageUrls.length === 1 ? 'grid-cols-1' : 'grid-cols-2 sm:grid-cols-3'}`}>
+                      {m.imageUrls.map((url, idx) => (
+                        <div key={idx} className="overflow-hidden rounded-xl border border-white/20 shadow-md aspect-video sm:aspect-square bg-black/40">
+                          <img src={url} alt={`Đính kèm ${idx + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : m.imageUrl ? (
                     <div className="mb-3 overflow-hidden rounded-2xl border border-white/20 shadow-md">
                       <img
                         src={m.imageUrl}
@@ -410,7 +427,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
                         className="max-h-60 sm:max-h-80 w-auto object-cover rounded-2xl"
                       />
                     </div>
-                  )}
+                  ) : null}
 
                   {isUser ? (
                     m.text
@@ -663,28 +680,40 @@ export const CoachView: React.FC<CoachViewProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Selected Image Thumbnail Preview before sending */}
-      {selectedImage && (
-        <div className="mb-2 p-2 bg-slate-900/90 border border-cyan-500/40 rounded-2xl flex items-center justify-between shrink-0 animate-fade-in">
-          <div className="flex items-center gap-2.5">
-            <img
-              src={selectedImage}
-              alt="Preview"
-              className="w-12 h-12 object-cover rounded-xl border border-slate-700"
-            />
-            <div>
-              <span className="text-xs font-bold text-white block">Ảnh sẵn sàng gửi</span>
-              <span className="text-[11px] text-cyan-400">Coach sẽ phân tích món ăn / vóc dáng qua ảnh</span>
-            </div>
+      {/* Selected Images Thumbnail Preview before sending */}
+      {selectedImages.length > 0 && (
+        <div className="mb-2 p-2.5 bg-slate-900/95 border border-cyan-500/40 rounded-2xl shrink-0 animate-fade-in shadow-xl">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-white flex items-center gap-1.5">
+              <Camera className="w-4 h-4 text-cyan-400" />
+              <span>Đã chọn {selectedImages.length} ảnh ({selectedImages.length}/5)</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedImages([])}
+              className="text-[11px] text-rose-400 hover:text-rose-300 font-medium"
+            >
+              Hủy tất cả
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setSelectedImage(null)}
-            className="p-1.5 rounded-full bg-slate-800 hover:bg-rose-900/60 text-slate-400 hover:text-rose-300 transition"
-            title="Hủy ảnh"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+            {selectedImages.map((img, idx) => (
+              <div key={idx} className="relative w-16 h-16 rounded-xl overflow-hidden border border-white/20 shrink-0 group shadow">
+                <img src={img} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSelectedImage(idx)}
+                  className="absolute top-1 right-1 p-1 bg-black/80 hover:bg-rose-600 text-white rounded-full transition active:scale-90"
+                  title="Xóa ảnh này"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+                <span className="absolute bottom-1 left-1 text-[8px] bg-black/75 px-1 rounded text-white font-bold">
+                  #{idx + 1}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -712,12 +741,13 @@ export const CoachView: React.FC<CoachViewProps> = ({
         }}
         className="liquid-glass-dock rounded-[28px] p-2 sm:p-2.5 flex items-end gap-2 sm:gap-2.5 border border-white/15 shadow-2xl shrink-0"
       >
-        {/* Hidden File Input for Camera/Gallery */}
+        {/* Hidden File Input for Camera/Gallery (Supports Multiple Photos) */}
         <input
           type="file"
           ref={fileInputRef}
           onChange={handleImageChange}
           accept="image/*"
+          multiple
           className="hidden"
         />
 
@@ -726,14 +756,19 @@ export const CoachView: React.FC<CoachViewProps> = ({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading}
-          className={`p-3 rounded-2xl border transition shrink-0 flex items-center justify-center ${
-            selectedImage
+          className={`relative p-3 rounded-2xl border transition shrink-0 flex items-center justify-center ${
+            selectedImages.length > 0
               ? 'liquid-glass-cyan text-cyan-300 border-cyan-400/50 shadow-md shadow-cyan-500/20'
               : 'liquid-glass-btn text-slate-300 hover:text-white'
           }`}
-          title="Chụp hoặc tải ảnh món ăn / thể hình"
+          title="Chụp hoặc tải ảnh món ăn / thể hình (có thể chọn nhiều ảnh)"
         >
           <Camera className="w-5 h-5 stroke-[2.2]" />
+          {selectedImages.length > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-400 text-slate-950 font-black text-[9px] rounded-full flex items-center justify-center shadow">
+              {selectedImages.length}
+            </span>
+          )}
         </button>
 
         {/* Multi-line Auto-Expanding Textarea */}
@@ -759,7 +794,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
         {/* Send Button */}
         <button
           type="submit"
-          disabled={isLoading || (!inputMessage.trim() && !selectedImage)}
+          disabled={isLoading || (!inputMessage.trim() && selectedImages.length === 0)}
           className="p-3 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 hover:brightness-110 disabled:opacity-30 disabled:pointer-events-none text-slate-950 font-black rounded-2xl transition shadow-xl shadow-emerald-500/25 shrink-0 active:scale-95"
           title="Gửi tin nhắn"
         >

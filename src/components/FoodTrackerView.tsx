@@ -44,7 +44,6 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'planner' | 'scanner'>('planner');
   const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('lunch');
   const [description, setDescription] = useState<string>('');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [scanResult, setScanResult] = useState<Omit<FoodItem, 'id' | 'timestamp'> | null>(null);
 
@@ -97,24 +96,46 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
   const [newNutrientTarget, setNewNutrientTarget] = useState<number>(100);
   const [newNutrientCategory, setNewNutrientCategory] = useState<'macro' | 'debloat' | 'height_growth' | 'energy' | 'custom'>('custom');
 
+  const [imagesPreview, setImagesPreview] = useState<string[]>([]);
+  const [viewingItemPhotos, setViewingItemPhotos] = useState<FoodItem | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Handle image selection
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  // Handle multiple image selection (from camera or file picker)
+  const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const fileList = Array.from(files);
+    const readers = fileList.map(file => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(readers).then(newImages => {
+      setImagesPreview(prev => {
+        const combined = [...prev, ...newImages];
+        // Allow up to 8 images per meal
+        return combined.slice(0, 8);
+      });
+    });
+
+    e.target.value = '';
   };
 
-  // Run Gemini AI Analysis
+  const handleRemoveImage = (indexToRemove: number) => {
+    setImagesPreview(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  // Run Gemini AI Analysis with Multi-Image Support
   const handleAnalyze = async () => {
-    if (!description && !imagePreview) {
-      alert('Vui lòng nhập miêu tả món ăn hoặc chọn một bức ảnh chụp đĩa thức ăn!');
+    if (!description && imagesPreview.length === 0) {
+      alert('Vui lòng nhập miêu tả món ăn hoặc chụp/chọn ít nhất 1 ảnh đĩa thức ăn!');
       return;
     }
 
@@ -129,7 +150,7 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
       const result = await geminiService.analyzeFood(
         {
           textDescription: description,
-          imageBase64: imagePreview || undefined,
+          imagesBase64: imagesPreview,
           mealType
         },
         customNutrients
@@ -146,7 +167,7 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
 
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
-  // Save current scan to Food Log
+  // Save current scan to Food Log (compresses all thumbnails for localStorage safety)
   const handleSaveToLog = async () => {
     if (!scanResult) return;
     try {
@@ -155,17 +176,30 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
         photoUrl = await compressImageToThumbnail(photoUrl, 320, 320, 0.7);
       }
 
+      let photoUrls: string[] | undefined = undefined;
+      if (scanResult.photoUrls && scanResult.photoUrls.length > 0) {
+        photoUrls = await Promise.all(
+          scanResult.photoUrls.map(async (u) => {
+            if (u.startsWith('data:image')) {
+              return await compressImageToThumbnail(u, 320, 320, 0.7);
+            }
+            return u;
+          })
+        );
+      }
+
       const itemToSave = {
         ...scanResult,
-        photoUrl
+        photoUrl,
+        photoUrls
       };
 
       const item = storageService.addFoodItem(itemToSave);
       onFoodAdded(item);
       setScanResult(null);
       setDescription('');
-      setImagePreview(null);
-      setSaveSuccessMsg(`🎉 Đã lưu "${item.name}" (${item.calories} kcal) vào nhật ký thành công!`);
+      setImagesPreview([]);
+      setSaveSuccessMsg(`🎉 Đã lưu "${item.name}" (${item.calories} kcal) với ${photoUrls?.length || 1} ảnh vào nhật ký thành công!`);
       setTimeout(() => setSaveSuccessMsg(null), 4000);
 
       try {
@@ -318,29 +352,33 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
               />
             </div>
 
-            {/* Image Upload / Camera Box */}
-            <div className="space-y-2">
-              <label className="block text-xs text-slate-300 font-medium">Hoặc chụp / chọn ảnh đĩa thức ăn:</label>
+            {/* Image Upload / Camera Box (Multi-Image Support) */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs text-slate-300 font-medium">
+                  Chụp hoặc tải ảnh món ăn <span className="text-emerald-400 font-bold">(Có thể chọn nhiều ảnh cùng lúc)</span>:
+                </label>
+                {imagesPreview.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setImagesPreview([])}
+                    className="text-[11px] text-rose-400 hover:text-rose-300 font-semibold"
+                  >
+                    Xóa tất cả ({imagesPreview.length} ảnh)
+                  </button>
+                )}
+              </div>
+
               <input
                 type="file"
                 accept="image/*"
+                multiple
                 ref={fileInputRef}
-                onChange={handleImageChange}
+                onChange={handleImagesChange}
                 className="hidden"
               />
 
-              {imagePreview ? (
-                <div className="relative rounded-2xl overflow-hidden border border-emerald-500/40 max-h-60 flex items-center justify-center bg-black/60 shadow-inner">
-                  <img src={imagePreview} alt="Food preview" className="object-cover w-full h-full max-h-60" />
-                  <button
-                    type="button"
-                    onClick={() => setImagePreview(null)}
-                    className="absolute top-2.5 right-2.5 p-2 bg-black/70 hover:bg-black text-rose-400 rounded-full transition liquid-glass-btn"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
+              {imagesPreview.length === 0 ? (
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   className="border-2 border-dashed border-white/15 hover:border-emerald-400/50 rounded-2xl p-6 text-center cursor-pointer bg-white/[0.02] hover:bg-white/[0.04] transition-all flex flex-col items-center justify-center gap-2.5 group"
@@ -353,8 +391,77 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                       <Upload className="w-5 h-5" />
                     </div>
                   </div>
-                  <p className="text-xs text-slate-200 font-bold">Nhấn vào đây để Chụp ảnh hoặc Tải ảnh từ thư viện</p>
-                  <p className="text-[10px] text-slate-400">Gemini Vision AI sẽ tự động nhận diện món ăn và tính toán dinh dưỡng</p>
+                  <div>
+                    <p className="text-xs text-slate-200 font-bold">Chạm để Chụp ảnh hoặc Tải nhiều ảnh món ăn</p>
+                    <p className="text-[10px] text-emerald-300/90 font-medium mt-0.5">
+                      💡 Mẹo: Có thể chọn nhiều ảnh (món chính + canh + đồ uống + tráng miệng) để AI gộp chung 1 bữa!
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {/* Grid of uploaded images */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {imagesPreview.map((img, idx) => (
+                      <div 
+                        key={idx} 
+                        className="relative rounded-2xl overflow-hidden border border-white/20 aspect-video sm:aspect-square bg-black/60 shadow-md group"
+                      >
+                        <img 
+                          src={img} 
+                          alt={`Món ăn ${idx + 1}`} 
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none"></div>
+
+                        {/* Photo Number Badge */}
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-[10px] font-bold text-white flex items-center gap-1 shadow">
+                          <span>Ảnh {idx + 1}</span>
+                          {idx === 0 && <span className="text-emerald-300">• Món chính</span>}
+                        </div>
+
+                        {/* Remove Single Photo Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-rose-600 text-white rounded-full transition shadow-md active:scale-90"
+                          title="Xóa ảnh này"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* "+ Thêm ảnh" Button Card if less than 8 images */}
+                    {imagesPreview.length < 8 && (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-2 border-dashed border-white/20 hover:border-emerald-400/50 rounded-2xl p-4 aspect-video sm:aspect-square flex flex-col items-center justify-center gap-1.5 bg-white/[0.02] hover:bg-white/[0.06] transition text-slate-300 hover:text-emerald-300 group"
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 transition-transform">
+                          <Plus className="w-4 h-4 stroke-[3]" />
+                        </div>
+                        <span className="text-[11px] font-bold">+ Thêm ảnh</span>
+                        <span className="text-[9px] text-slate-400">Canh / Nước / Món phụ</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Multi-image Info Notice */}
+                  <div className="p-2.5 rounded-xl liquid-glass text-[11px] text-slate-300 flex items-center justify-between border border-emerald-500/20">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Đã gắn <strong>{imagesPreview.length} bức ảnh</strong>. Gemini AI sẽ tổng hợp toàn bộ các món trong các ảnh.</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-emerald-400 hover:text-emerald-300 font-bold shrink-0 text-[10px] ml-2 underline"
+                    >
+                      Thêm ảnh nữa
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -448,6 +555,28 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                 </div>
               </div>
 
+              {/* Multi-Photo Carousel / Grid in Scan Result */}
+              {scanResult.photoUrls && scanResult.photoUrls.length > 1 && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] text-slate-300 font-semibold">
+                    <span className="flex items-center gap-1.5 text-emerald-300">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Các ảnh món & thức uống đã quét ({scanResult.photoUrls.length} ảnh):</span>
+                    </span>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                    {scanResult.photoUrls.map((p, idx) => (
+                      <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/20 shrink-0 shadow bg-black/60">
+                        <img src={p} alt={`Món ${idx + 1}`} className="w-full h-full object-cover" />
+                        <span className="absolute bottom-1 right-1 text-[9px] bg-black/75 px-1.5 py-0.5 rounded text-white font-bold">
+                          #{idx + 1}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* AI Notes on Debloat / Growth */}
               {scanResult.aiNotes && (
                 <div className="liquid-glass border border-cyan-500/30 p-3.5 rounded-2xl text-xs text-slate-200 flex items-start gap-2.5">
@@ -520,9 +649,20 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                   >
                     <div className="flex items-center gap-3">
                       {item.photoUrl ? (
-                        <img src={item.photoUrl} alt={item.name} className="w-12 h-12 object-cover rounded-xl border border-white/15" />
+                        <div 
+                          onClick={() => setViewingItemPhotos(item)}
+                          className="relative w-12 h-12 rounded-xl overflow-hidden border border-white/15 shrink-0 cursor-pointer group/img hover:border-emerald-400 transition"
+                          title="Chạm để xem ảnh món ăn"
+                        >
+                          <img src={item.photoUrl} alt={item.name} className="w-full h-full object-cover group-hover/img:scale-110 transition-transform" />
+                          {item.photoUrls && item.photoUrls.length > 1 && (
+                            <span className="absolute bottom-0 inset-x-0 bg-black/85 text-[8px] font-black text-center text-emerald-300 py-0.5">
+                              {item.photoUrls.length} ảnh
+                            </span>
+                          )}
+                        </div>
                       ) : (
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-300 font-black text-sm shadow-[0_0_10px_rgba(52,211,153,0.2)]">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-300 font-black text-sm shadow-[0_0_10px_rgba(52,211,153,0.2)] shrink-0">
                           {item.mealType.slice(0, 1).toUpperCase()}
                         </div>
                       )}
@@ -812,6 +952,53 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
               >
                 <Check className="w-4 h-4 stroke-[3px]" />
                 <span>Lưu Thay Đổi</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: View Meal Photos Gallery */}
+      {viewingItemPhotos && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-200">
+          <div className="w-full max-w-lg liquid-glass rounded-[32px] border border-white/20 p-5 space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div>
+                <h3 className="text-sm font-black text-white">{viewingItemPhotos.name}</h3>
+                <p className="text-[10px] text-slate-400">
+                  {viewingItemPhotos.calories} kcal • {viewingItemPhotos.photoUrls?.length || (viewingItemPhotos.photoUrl ? 1 : 0)} bức ảnh đã quét
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingItemPhotos(null)}
+                className="text-slate-400 hover:text-white p-1.5 liquid-glass-btn rounded-xl"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+              {(viewingItemPhotos.photoUrls && viewingItemPhotos.photoUrls.length > 0 
+                ? viewingItemPhotos.photoUrls 
+                : [viewingItemPhotos.photoUrl].filter(Boolean)
+              ).map((url, idx) => (
+                <div key={idx} className="relative rounded-2xl overflow-hidden border border-white/20 aspect-video bg-black/60 shadow">
+                  <img src={url!} alt={`Ảnh ${idx + 1}`} className="w-full h-full object-cover" />
+                  <span className="absolute top-2 left-2 text-[10px] bg-black/75 px-2 py-0.5 rounded-full text-white font-bold border border-white/20">
+                    Ảnh #{idx + 1}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => setViewingItemPhotos(null)}
+                className="px-4 py-2 liquid-glass-btn rounded-xl text-xs font-bold text-slate-300 hover:text-white"
+              >
+                Đóng
               </button>
             </div>
           </div>

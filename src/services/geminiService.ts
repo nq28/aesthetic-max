@@ -250,9 +250,14 @@ All notes and text in Vietnamese. Return ONLY raw JSON without markdown formatti
     return JSON.parse(textOutput) as AiRoadmapResult;
   },
 
-  // Analyze Food via Gemini Vision / Text (Strictly AI)
+  // Analyze Food via Gemini Vision / Text (Strictly AI - Supports Multiple Photos)
   analyzeFood: async (
-    input: { textDescription?: string; imageBase64?: string; mealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack' },
+    input: { 
+      textDescription?: string; 
+      imageBase64?: string; 
+      imagesBase64?: string[]; 
+      mealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+    },
     customNutrientsList: { id: string; name: string; unit: string }[] = []
   ): Promise<Omit<FoodItem, 'id' | 'timestamp'>> => {
     const apiKey = storageService.getApiKey();
@@ -260,20 +265,39 @@ All notes and text in Vietnamese. Return ONLY raw JSON without markdown formatti
       throw new Error('Chưa cấu hình Gemini API Key. Vui lòng nhập API Key để AI phân tích món ăn!');
     }
 
+    // Collect all unique images (supports both single imageBase64 and multi-photo imagesBase64)
+    const allImages: string[] = [];
+    if (input.imagesBase64 && Array.isArray(input.imagesBase64)) {
+      input.imagesBase64.forEach(img => {
+        if (img && typeof img === 'string' && !allImages.includes(img)) {
+          allImages.push(img);
+        }
+      });
+    }
+    if (input.imageBase64 && !allImages.includes(input.imageBase64)) {
+      allImages.unshift(input.imageBase64);
+    }
+
     const customListPrompt = customNutrientsList.length > 0 
       ? `Also estimate these custom requested nutrients: ${customNutrientsList.map(n => `${n.name} (id: "${n.id}", unit: "${n.unit}")`).join(', ')}.`
       : '';
 
-    const systemPrompt = `You are a certified sports clinical nutritionist and biochemist.
-Analyze the provided food image and/or description with highest precision.
-Return strict JSON with nutritional data:
+    const systemPrompt = `You are a certified sports clinical nutritionist, biochemist, and aesthetic physique specialist.
+Analyze the provided food image(s) and/or text description with highest precision.
+${allImages.length > 1 ? `IMPORTANT MULTI-IMAGE INSTRUCTION:
+There are ${allImages.length} photos attached representing this single meal.
+The photos may capture different dishes, side dishes, bowls, soup, drinks, sauces, desserts, or multiple plates/angles of the meal.
+Identify and combine ALL food items, side dishes, drinks, and snacks detected across ALL ${allImages.length} photos into one comprehensive meal total:
+- calories: Total combined calories (kcal) of all dishes and beverages across all photos.
+- name: Vietnamese meal title combining the main dishes & drinks (e.g., "Cơm sườn bì chả + Canh cải thịt bằm + Nước dừa tươi").
+- servingSize: Detailed portion estimation of all items (e.g., "1 đĩa cơm 400g, 1 bát canh 200ml, 1 cốc 300ml").` : `Return strict JSON with nutritional data:
 - calories (integer kcal)
 - name (Vietnamese meal title)
-- servingSize (portion estimation in grams or descriptive)
+- servingSize (portion estimation in grams or descriptive)`}
 - nutrients: {
-    protein (grams),
-    carbs (grams),
-    fat (grams),
+    protein (grams - total combined),
+    carbs (grams - total combined),
+    fat (grams - total combined),
     fiber (grams),
     sugar (grams),
     sodium (mg - critical for facial water retention and debloat),
@@ -286,7 +310,7 @@ Return strict JSON with nutritional data:
     caffeine (mg)
   }
 ${customListPrompt}
-- aiNotes: Insightful advice in Vietnamese concerning facial debloat, jawline fat reduction, or bone/height optimization.
+- aiNotes: Insightful advice in Vietnamese concerning facial debloat, jawline fat reduction, or bone/muscle optimization.${allImages.length > 1 ? ' Mention each of the dishes and drinks identified across the photos.' : ''}
 
 Return ONLY raw JSON without markdown.`;
 
@@ -294,20 +318,28 @@ Return ONLY raw JSON without markdown.`;
     const parts: any[] = [{ text: systemPrompt }];
 
     if (input.textDescription) {
-      parts.push({ text: `Food description: "${input.textDescription}"` });
+      parts.push({ text: `Food description / user notes: "${input.textDescription}"` });
     }
 
-    if (input.imageBase64) {
-      const base64Data = input.imageBase64.includes(',') 
-        ? input.imageBase64.split(',')[1] 
-        : input.imageBase64;
+    allImages.forEach((img, idx) => {
+      const mimeType = img.startsWith('data:image/png')
+        ? 'image/png'
+        : img.startsWith('data:image/webp')
+        ? 'image/webp'
+        : 'image/jpeg';
+      const base64Data = img.includes(',') 
+        ? img.split(',')[1] 
+        : img;
       parts.push({
         inlineData: {
-          mimeType: 'image/jpeg',
+          mimeType,
           data: base64Data
         }
       });
-    }
+      if (allImages.length > 1) {
+        parts.push({ text: `[Ảnh #${idx + 1}/${allImages.length}]` });
+      }
+    });
 
     contents.push({ parts });
 
@@ -328,7 +360,8 @@ Return ONLY raw JSON without markdown.`;
       calories: Math.round(parsed.calories || 300),
       servingSize: parsed.servingSize || '1 phần chuẩn',
       mealType: input.mealType || 'lunch',
-      photoUrl: input.imageBase64,
+      photoUrl: allImages[0] || undefined,
+      photoUrls: allImages.length > 0 ? allImages : undefined,
       nutrients: parsed.nutrients || {},
       aiNotes: parsed.aiNotes || 'Được phân tích trực tiếp bởi Gemini AI.'
     };
@@ -489,7 +522,7 @@ All explanatory text must be in natural, empowering Vietnamese. Return only vali
       latestLooksmax: LooksmaxAnalysis | null;
       dailyMealPlan?: DailyMealPlan | null;
     },
-    imageBase64?: string
+    imageBase64?: string | string[]
   ): Promise<{ text: string; detectedMeals?: DetectedMealItem[]; suggestedMealPlan?: DailyMealPlan }> => {
     const apiKey = storageService.getApiKey();
     if (!apiKey) {
@@ -577,20 +610,30 @@ If NO meals or foods were eaten, mentioned, or asked, DO NOT output the \`\`\`js
 
     // Add current user prompt (multimodal if imageBase64 present)
     const userParts: any[] = [];
-    if (imageBase64) {
-      const mimeType = imageBase64.startsWith('data:image/png')
+    const imagesToAttach: string[] = [];
+    if (Array.isArray(imageBase64)) {
+      imagesToAttach.push(...imageBase64.filter(Boolean));
+    } else if (typeof imageBase64 === 'string' && imageBase64) {
+      imagesToAttach.push(imageBase64);
+    }
+
+    imagesToAttach.forEach((img, idx) => {
+      const mimeType = img.startsWith('data:image/png')
         ? 'image/png'
-        : imageBase64.startsWith('data:image/webp')
+        : img.startsWith('data:image/webp')
         ? 'image/webp'
         : 'image/jpeg';
-      const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z0-9]+;base64,/, '');
+      const cleanBase64 = img.replace(/^data:image\/[a-zA-Z0-9]+;base64,/, '');
       userParts.push({
         inlineData: {
           mimeType,
           data: cleanBase64
         }
       });
-    }
+      if (imagesToAttach.length > 1) {
+        userParts.push({ text: `[Ảnh #${idx + 1}/${imagesToAttach.length}]` });
+      }
+    });
 
     userParts.push({
       text: userMessage || 'Phân tích hình ảnh này cho tôi và tư vấn dinh dưỡng / bài tập / calo phù hợp nhé coach!'
