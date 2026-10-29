@@ -299,15 +299,15 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
     <div className="space-y-5 pb-20">
       
       {/* Top Banner Card */}
-      <div className="bg-gradient-to-r from-emerald-950/60 via-slate-900 to-cyan-950/60 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-xl">
+      <div className="liquid-glass-emerald rounded-[28px] p-5 sm:p-6 relative overflow-hidden shadow-2xl">
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
-              <ChefHat className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-1">
+              <ChefHat className="w-4 h-4 text-emerald-400 drop-shadow-[0_0_8px_#34d399]" />
               <span>AI Daily Meal Planner & Debloat Chef</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-white">Thực Đơn Cá Nhân Hóa Hàng Ngày</h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-xl">
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Thực Đơn Cá Nhân Hóa Hàng Ngày</h1>
+            <p className="text-xs text-slate-300/80 mt-1 max-w-xl">
               Thực đơn tự động tính toán chính xác calo, chuẩn vi chất tăng cơ & giàu Kali xả nước mặt (Debloat) để lộ đường nét góc cạnh Jawline.
             </p>
           </div>
@@ -317,10 +317,10 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
               type="button"
               onClick={() => handleGeneratePlan(selectedDiet)}
               disabled={isGenerating}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition shadow-lg ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs font-black transition-all duration-200 shadow-lg active:scale-95 ${
                 isGenerating
-                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                  : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/25'
+                  ? 'bg-white/10 text-slate-500 cursor-not-allowed border border-white/10'
+                  : 'bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(52,211,153,0.35)] border border-white/30'
               }`}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
@@ -332,7 +332,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
               onClick={handleCopyMenu}
               disabled={!mealPlan}
               title="Sao chép thực đơn để gửi hoặc lưu"
-              className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition border border-slate-700 shrink-0"
+              className="p-2.5 liquid-glass-btn text-slate-300 hover:text-white rounded-2xl text-xs font-semibold transition shrink-0 active:scale-95"
             >
               <Share2 className="w-4 h-4" />
             </button>
@@ -340,11 +340,11 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
         </div>
 
         {/* Diet Style Selector Pills */}
-        <div className="mt-4 pt-3 border-t border-slate-800/80">
-          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+        <div className="mt-4 pt-3 border-t border-white/10">
+          <div className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-2">
             Phong cách ăn uống yêu thích:
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-thin scrollbar-thumb-slate-800">
+          <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-thin">
             {DIET_OPTIONS.map((diet) => {
               const isSelected = selectedDiet === diet.id;
               return (
@@ -356,10 +356,10 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     handleGeneratePlan(diet.id);
                   }}
                   disabled={isGenerating}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-200 active:scale-95 border ${
                     isSelected
-                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-500/10'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                      ? 'liquid-pill-active text-emerald-200 shadow-[0_0_12px_rgba(52,211,153,0.3)]'
+                      : 'liquid-glass text-slate-300 hover:text-white'
                   }`}
                 >
                   <span>{diet.icon}</span>
@@ -371,19 +371,19 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
         </div>
 
         {/* Budget Selector Pills */}
-        <div className="mt-3 pt-2.5 border-t border-slate-800/80">
+        <div className="mt-3 pt-2.5 border-t border-white/10">
           <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+            <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
               <Coins className="w-3.5 h-3.5 text-amber-400" />
               <span>Ngân sách ăn uống dự kiến:</span>
             </span>
             {selectedBudget > 0 && (
-              <span className="text-[11px] font-bold text-amber-400">
+              <span className="text-[11px] font-bold text-amber-300">
                 Mục tiêu: ~{selectedBudget.toLocaleString('vi-VN')} đ/ngày
               </span>
             )}
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-800">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
             {BUDGET_OPTIONS.map((b) => {
               const isSelected = selectedBudget === b.value;
               return (
@@ -395,10 +395,10 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     handleGeneratePlan(selectedDiet, b.value);
                   }}
                   disabled={isGenerating}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-200 active:scale-95 border ${
                     isSelected
-                      ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-sm shadow-amber-500/20'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-amber-500/25 border-amber-400/50 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.3)]'
+                      : 'liquid-glass text-slate-300 hover:text-white'
                   }`}
                 >
                   <span>{b.label}</span>
@@ -462,16 +462,16 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
           
           {/* Nutrition & Debloat Summary Matrix */}
           {mealPlan && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 shadow-lg">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800/80 pb-3">
+            <div className="liquid-glass-card rounded-[28px] p-5 sm:p-6 space-y-4 shadow-2xl relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-white/10 pb-4">
                 <div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">TỔNG QUAN DINH DƯỠNG THỰC ĐƠN</span>
-                  <div className="flex items-baseline gap-2 mt-0.5">
-                    <span className="text-2xl font-black text-white">{mealPlan.totalCalories}</span>
-                    <span className="text-xs text-slate-400">/ Mục tiêu: {targetCal} kcal</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-3xl font-black text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]">{mealPlan.totalCalories}</span>
+                    <span className="text-xs text-slate-400 font-medium">/ Mục tiêu: {targetCal} kcal</span>
                     {calDiff !== 0 && (
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                        Math.abs(calDiff) <= 100 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        Math.abs(calDiff) <= 100 ? 'liquid-pill-active text-emerald-200' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                       }`}>
                         {calDiff > 0 ? `+${calDiff}` : calDiff} kcal
                       </span>
@@ -480,11 +480,11 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                 </div>
 
                 {/* Debloat Pill */}
-                <div className="flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800">
-                  <Droplet className="w-4 h-4 text-cyan-400" />
+                <div className="flex items-center gap-2.5 liquid-glass px-3.5 py-2 rounded-2xl border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)]">
+                  <Droplet className="w-4 h-4 text-cyan-400 drop-shadow-[0_0_8px_#22d3ee]" />
                   <div>
                     <div className="text-[10px] text-slate-400 font-medium">Tỷ lệ Xả Nước K:Na</div>
-                    <div className="text-xs font-bold text-cyan-300 flex items-center gap-1">
+                    <div className="text-xs font-black text-cyan-300 flex items-center gap-1">
                       <span>{mealPlan.debloatRatio}:1</span>
                       <span className="text-[10px] text-emerald-400 font-normal">({mealPlan.debloatScore})</span>
                     </div>
@@ -493,36 +493,36 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
               </div>
 
               {/* Macro Bars */}
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-1 text-center">
-                <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800">
-                  <div className="text-[10px] text-slate-400">Protein</div>
-                  <div className="text-sm font-bold text-emerald-400">{mealPlan.totalProtein}g</div>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center text-xs">
+                <div className="liquid-glass p-2.5 rounded-2xl border border-white/10">
+                  <div className="text-[10px] text-slate-400 font-medium">Protein</div>
+                  <div className="text-sm font-black text-emerald-300 mt-0.5">{mealPlan.totalProtein}g</div>
                 </div>
-                <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800">
-                  <div className="text-[10px] text-slate-400">Carbs</div>
-                  <div className="text-sm font-bold text-amber-400">{mealPlan.totalCarbs}g</div>
+                <div className="liquid-glass p-2.5 rounded-2xl border border-white/10">
+                  <div className="text-[10px] text-slate-400 font-medium">Carbs</div>
+                  <div className="text-sm font-black text-amber-300 mt-0.5">{mealPlan.totalCarbs}g</div>
                 </div>
-                <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800">
-                  <div className="text-[10px] text-slate-400">Chất béo (Fat)</div>
-                  <div className="text-sm font-bold text-rose-400">{mealPlan.totalFat}g</div>
+                <div className="liquid-glass p-2.5 rounded-2xl border border-white/10">
+                  <div className="text-[10px] text-slate-400 font-medium">Chất béo (Fat)</div>
+                  <div className="text-sm font-black text-rose-300 mt-0.5">{mealPlan.totalFat}g</div>
                 </div>
-                <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800">
-                  <div className="text-[10px] text-slate-400">Kali (Xả nước)</div>
-                  <div className="text-sm font-bold text-cyan-400">{mealPlan.totalPotassium}mg</div>
+                <div className="liquid-glass p-2.5 rounded-2xl border border-white/10">
+                  <div className="text-[10px] text-slate-400 font-medium">Kali (Xả nước)</div>
+                  <div className="text-sm font-black text-cyan-300 mt-0.5">{mealPlan.totalPotassium}mg</div>
                 </div>
-                <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800 col-span-2 sm:col-span-1">
-                  <div className="text-[10px] text-slate-400">Natri (Muối)</div>
-                  <div className="text-sm font-bold text-slate-300">{mealPlan.totalSodium}mg</div>
+                <div className="liquid-glass p-2.5 rounded-2xl border border-white/10 col-span-2 sm:col-span-1">
+                  <div className="text-[10px] text-slate-400 font-medium">Natri (Muối)</div>
+                  <div className="text-sm font-black text-slate-300 mt-0.5">{mealPlan.totalSodium}mg</div>
                 </div>
               </div>
 
               {/* Estimated Budget & Cost Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 liquid-glass p-3.5 rounded-2xl border border-amber-500/25 text-xs">
                 <div className="flex items-center gap-2">
                   <Coins className="w-4 h-4 text-amber-400 shrink-0" />
                   <div>
                     <span className="text-slate-400">Chi phí dự kiến cả ngày: </span>
-                    <span className="font-black text-amber-400">
+                    <span className="font-black text-amber-300">
                       ~{(mealPlan.totalEstimatedCostVnd || 80000).toLocaleString('vi-VN')} đ
                     </span>
                     {selectedBudget > 0 && (
@@ -534,10 +534,10 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                 </div>
 
                 {selectedBudget > 0 && (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
                     (mealPlan.totalEstimatedCostVnd || 80000) <= selectedBudget
-                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                      : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
                   }`}>
                     {(mealPlan.totalEstimatedCostVnd || 80000) <= selectedBudget
                       ? '✓ Trong ngân sách'
@@ -548,7 +548,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
 
               {/* AI Chef Advice */}
               {mealPlan.aiChefAdvice && (
-                <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200/90 flex items-start gap-2.5">
+                <div className="liquid-glass-emerald border border-emerald-500/30 rounded-2xl p-3.5 text-xs text-emerald-200/90 flex items-start gap-2.5 shadow-md">
                   <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                   <span>{mealPlan.aiChefAdvice}</span>
                 </div>
@@ -558,7 +558,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
 
           {/* Loading Skeleton */}
           {isGenerating && !mealPlan && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center space-y-3">
+            <div className="liquid-glass-card rounded-[28px] p-8 text-center space-y-3">
               <div className="w-8 h-8 border-3 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
               <p className="text-sm font-bold text-white">Gemini AI Đang Tính Toán & Soạn Thực Đơn...</p>
               <p className="text-xs text-slate-400">Đang tối ưu hàm lượng Kali, cắt giảm Natri và cân bằng macro.</p>
@@ -578,33 +578,33 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
               : 'Bữa Phụ';
 
             const mealColor = meal.mealType === 'breakfast'
-              ? 'from-amber-500/20 to-orange-500/10 text-amber-400 border-amber-500/30'
+              ? 'from-amber-500/25 to-orange-500/15 text-amber-300 border-amber-500/40'
               : meal.mealType === 'lunch'
-              ? 'from-emerald-500/20 to-teal-500/10 text-emerald-400 border-emerald-500/30'
+              ? 'from-emerald-500/25 to-teal-500/15 text-emerald-300 border-emerald-500/40'
               : meal.mealType === 'dinner'
-              ? 'from-cyan-500/20 to-blue-500/10 text-cyan-400 border-cyan-500/30'
-              : 'from-purple-500/20 to-pink-500/10 text-purple-400 border-purple-500/30';
+              ? 'from-cyan-500/25 to-blue-500/15 text-cyan-300 border-cyan-500/40'
+              : 'from-purple-500/25 to-pink-500/15 text-purple-300 border-purple-500/40';
 
             return (
               <div
                 key={meal.id}
-                className={`bg-slate-900/90 border rounded-2xl p-4 sm:p-5 transition shadow-lg ${
+                className={`liquid-glass-card rounded-[28px] p-5 sm:p-6 transition-all duration-300 shadow-2xl relative overflow-hidden group ${
                   meal.logged 
-                    ? 'border-emerald-500/40 bg-slate-900/40' 
-                    : 'border-slate-800 hover:border-slate-700'
+                    ? 'border-emerald-500/40 bg-emerald-950/10' 
+                    : 'hover:border-white/20'
                 }`}
               >
                 {/* Header Row */}
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border bg-gradient-to-r ${mealColor}`}>
+                    <span className={`px-3 py-1 rounded-full text-[11px] font-black border bg-gradient-to-r ${mealColor} shadow-sm`}>
                       {mealLabel}
                     </span>
-                    <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                      <Clock className="w-3 h-3 text-slate-500" />
+                    <span className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
                       {meal.prepTimeMinutes} phút
                     </span>
-                    <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-400/90 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                    <span className="flex items-center gap-1 text-[11px] font-bold text-amber-300 bg-amber-500/15 px-2.5 py-0.5 rounded-full border border-amber-500/30">
                       <Coins className="w-3 h-3 text-amber-400" />
                       ~{(meal.estimatedCostVnd || 25000).toLocaleString('vi-VN')} đ
                     </span>
@@ -613,60 +613,63 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                   <button
                     type="button"
                     onClick={() => openEditMealModal(meal)}
-                    className="text-right flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-950/70 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/50 transition group"
+                    className="text-right flex items-center gap-1.5 px-3 py-1.5 rounded-2xl liquid-glass-btn hover:border-emerald-400/50 transition group"
                     title="Chạm để sửa calo"
                   >
                     <div>
-                      <span className="text-lg font-black text-white group-hover:text-emerald-400">{meal.calories}</span>
+                      <span className="text-base font-black text-white group-hover:text-emerald-300">{meal.calories}</span>
                       <span className="text-xs text-slate-400 ml-1">kcal</span>
                     </div>
-                    <Pencil className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400" />
+                    <Pencil className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-300" />
                   </button>
                 </div>
 
                 {/* Meal Name & Description */}
-                <div className="mt-2">
+                <div className="mt-3">
                   <h3 className="text-base font-bold text-white flex items-center gap-2">
                     <span>{meal.name}</span>
                     {meal.logged && (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold flex items-center gap-1">
+                      <span className="px-2.5 py-0.5 rounded-full liquid-pill-active text-emerald-300 text-[10px] font-bold flex items-center gap-1">
                         <Check className="w-3 h-3" /> Đã ăn
                       </span>
                     )}
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">Khẩu phần: {meal.servingSize}</p>
                   {meal.description && (
-                    <p className="text-xs text-slate-300 mt-1 italic">{meal.description}</p>
+                    <p className="text-xs text-slate-300 mt-1.5 italic bg-white/[0.02] p-2 rounded-xl border border-white/5">{meal.description}</p>
                   )}
                 </div>
 
                 {/* Macro Pills */}
-                <div className="flex items-center gap-2.5 mt-3 text-[11px]">
-                  <span className="bg-slate-950 px-2 py-1 rounded-md text-emerald-400 font-medium border border-slate-800">
+                <div className="flex items-center gap-2 mt-3 text-[11px] flex-wrap">
+                  <span className="liquid-glass px-2.5 py-1 rounded-lg text-emerald-300 font-semibold border border-white/10">
                     P: {meal.protein}g
                   </span>
-                  <span className="bg-slate-950 px-2 py-1 rounded-md text-amber-400 font-medium border border-slate-800">
+                  <span className="liquid-glass px-2.5 py-1 rounded-lg text-amber-300 font-semibold border border-white/10">
                     C: {meal.carbs}g
                   </span>
-                  <span className="bg-slate-950 px-2 py-1 rounded-md text-rose-400 font-medium border border-slate-800">
+                  <span className="liquid-glass px-2.5 py-1 rounded-lg text-rose-300 font-semibold border border-white/10">
                     F: {meal.fat}g
                   </span>
-                  <span className="bg-slate-950 px-2 py-1 rounded-md text-cyan-400 font-medium border border-slate-800">
+                  <span className="liquid-glass px-2.5 py-1 rounded-lg text-cyan-300 font-semibold border border-white/10">
                     Kali: {meal.potassium}mg
                   </span>
-                  <span className="text-slate-500 text-[10px]">
+                  <span className="text-slate-400 text-[10px] px-1">
                     Muối: {meal.sodium}mg
                   </span>
                 </div>
 
                 {/* Expandable Recipe & Ingredients Section */}
                 {isExpanded && (
-                  <div className="mt-3.5 pt-3.5 border-t border-slate-800/80 space-y-2.5 animate-fade-in text-xs">
+                  <div className="mt-3.5 pt-3.5 border-t border-white/10 space-y-3 animate-fade-in text-xs">
                     <div>
-                      <div className="font-bold text-slate-300 mb-1">🛒 Nguyên liệu chính:</div>
+                      <div className="font-bold text-slate-200 mb-1.5 flex items-center gap-1.5">
+                        <ShoppingCart className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Nguyên liệu chính:</span>
+                      </div>
                       <div className="flex flex-wrap gap-1.5">
                         {meal.ingredients.map((ing, iIdx) => (
-                          <span key={iIdx} className="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 text-slate-300">
+                          <span key={iIdx} className="liquid-glass px-2.5 py-1 rounded-xl border border-white/10 text-slate-300">
                             • {ing}
                           </span>
                         ))}
@@ -674,9 +677,12 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     </div>
 
                     {meal.recipeQuickSteps && meal.recipeQuickSteps.length > 0 && (
-                      <div className="mt-2">
-                        <div className="font-bold text-slate-300 mb-1">👨‍🍳 Các bước nấu nhanh:</div>
-                        <ol className="list-decimal list-inside space-y-1 text-slate-400">
+                      <div className="mt-2.5">
+                        <div className="font-bold text-slate-200 mb-1.5 flex items-center gap-1.5">
+                          <span>👨‍🍳</span>
+                          <span>Các bước nấu nhanh:</span>
+                        </div>
+                        <ol className="list-decimal list-inside space-y-1.5 text-slate-300/90 pl-1">
                           {meal.recipeQuickSteps.map((step, sIdx) => (
                             <li key={sIdx} className="leading-relaxed">{step}</li>
                           ))}
@@ -687,21 +693,21 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                 )}
 
                 {/* Action Buttons */}
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                <div className="mt-4 pt-3.5 border-t border-white/10 flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
                   <button
                     type="button"
                     onClick={() => setExpandedMealId(isExpanded ? null : meal.id)}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition"
+                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition py-1"
                   >
-                    <span>{isExpanded ? 'Thu gọn' : 'Xem nguyên liệu & cách nấu'}</span>
+                    <span>{isExpanded ? 'Thu gọn' : 'Xem nguyên liệu & nấu'}</span>
                     {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                   </button>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => openEditMealModal(meal)}
-                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 text-xs font-semibold rounded-xl flex items-center gap-1 transition border border-slate-700"
+                      className="px-3 py-1.5 liquid-glass-btn text-slate-300 hover:text-emerald-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition"
                       title="Sửa calo & thông tin bữa ăn"
                     >
                       <Pencil className="w-3.5 h-3.5" />
@@ -712,7 +718,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                       type="button"
                       onClick={() => handleSwapMeal(meal)}
                       disabled={isSwapping}
-                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition border border-slate-700"
+                      className="px-3 py-1.5 liquid-glass-btn text-slate-300 hover:text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition"
                     >
                       <RotateCw className={`w-3 h-3 ${isSwapping ? 'animate-spin text-emerald-400' : ''}`} />
                       <span>{isSwapping ? 'Đang đổi...' : 'Đổi món'}</span>
@@ -722,13 +728,13 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                       type="button"
                       onClick={() => handleLogPlannedMeal(meal)}
                       disabled={meal.logged}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-md ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition shadow-lg ${
                         meal.logged
-                          ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                          : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
+                          ? 'liquid-glass text-slate-500 cursor-not-allowed border-white/5'
+                          : 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 shadow-emerald-500/25 hover:brightness-110 active:scale-95'
                       }`}
                     >
-                      <Check className="w-3.5 h-3.5" />
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
                       <span>{meal.logged ? 'Đã ăn' : 'Nạp'}</span>
                     </button>
                   </div>
@@ -743,14 +749,14 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
 
       {/* Grocery / Shopping List Tab */}
       {activeTab === 'grocery' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-3">
+        <div className="liquid-glass-card rounded-[28px] p-5 sm:p-6 space-y-5 relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-white/10 pb-4">
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <h2 className="text-base font-black text-white flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4 text-emerald-400" />
                 <span>Danh Sách Đi Chợ Cho Cả Ngày</span>
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-300/80 mt-0.5">
                 Tổng hợp đầy đủ nguyên liệu của cả 4 bữa ăn để bạn đi chợ hoặc siêu thị một lần là xong.
               </p>
             </div>
@@ -758,7 +764,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
             <button
               type="button"
               onClick={handleCopyGrocery}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition border border-slate-700"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 liquid-glass-btn text-slate-200 hover:text-white text-xs font-semibold rounded-xl transition"
             >
               <Copy className="w-3.5 h-3.5" />
               <span>Sao Chép Danh Sách Đi Chợ</span>
@@ -766,24 +772,24 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
           </div>
 
           {/* Progress Bar & Estimated Basket Total */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs text-slate-400">
-              <span>Tiến độ mua sắm:</span>
-              <span className="font-bold text-emerald-400">{checkedGroceryItems} / {totalGroceryItems} món ({groceryProgressPercent}%)</span>
+          <div className="space-y-2.5">
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-400">Tiến độ mua sắm:</span>
+              <span className="font-bold text-emerald-300">{checkedGroceryItems} / {totalGroceryItems} món ({groceryProgressPercent}%)</span>
             </div>
-            <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+            <div className="w-full liquid-glass h-2.5 rounded-full overflow-hidden p-0.5 border border-white/10">
               <div 
-                className="bg-emerald-500 h-full rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-300 shadow-sm shadow-emerald-500/50"
                 style={{ width: `${groceryProgressPercent}%` }}
               ></div>
             </div>
 
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs mt-1">
+            <div className="flex items-center justify-between p-3 rounded-2xl liquid-glass border border-white/10 text-xs mt-1">
               <div className="flex items-center gap-2">
                 <Coins className="w-4 h-4 text-amber-400" />
                 <span className="text-slate-300">Tổng tiền đi chợ dự kiến:</span>
               </div>
-              <span className="font-bold text-amber-400">
+              <span className="font-black text-amber-300 text-sm">
                 ~{(mealPlan?.totalEstimatedCostVnd || 80000).toLocaleString('vi-VN')} đ
               </span>
             </div>
@@ -791,9 +797,10 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
 
           {/* Categories Grid */}
           {mealPlan?.groceryList && mealPlan.groceryList.map((category, catIdx) => (
-            <div key={catIdx} className="bg-slate-950/70 border border-slate-800/80 rounded-xl p-3.5 space-y-2.5">
-              <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                {category.category} ({category.items.filter(i => i.checked).length}/{category.items.length})
+            <div key={catIdx} className="liquid-glass rounded-2xl p-4 border border-white/10 space-y-3">
+              <h3 className="text-xs font-black text-emerald-300 uppercase tracking-wider flex items-center justify-between">
+                <span>{category.category}</span>
+                <span className="text-[10px] text-slate-400 font-mono">({category.items.filter(i => i.checked).length}/{category.items.length})</span>
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -801,13 +808,13 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                   <div
                     key={itemIdx}
                     onClick={() => handleToggleGrocery(catIdx, itemIdx)}
-                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition border text-xs ${
+                    className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition border text-xs ${
                       item.checked
                         ? 'bg-emerald-500/10 border-emerald-500/30 text-slate-500 line-through'
-                        : 'bg-slate-900 border-slate-800/80 text-white hover:border-slate-700'
+                        : 'liquid-glass border-white/5 text-white hover:border-white/20'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       {item.checked ? (
                         <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0" />
                       ) : (
@@ -821,7 +828,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
                       <span>{item.amount}</span>
                       {item.estimatedCostVnd && (
-                        <span className="text-amber-400/80 font-mono">~{item.estimatedCostVnd.toLocaleString('vi-VN')}đ</span>
+                        <span className="text-amber-400/90 font-mono">~{item.estimatedCostVnd.toLocaleString('vi-VN')}đ</span>
                       )}
                     </span>
                   </div>
@@ -831,7 +838,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
           ))}
 
           {(!mealPlan?.groceryList || mealPlan.groceryList.length === 0) && (
-            <div className="text-center py-8 text-xs text-slate-500">
+            <div className="text-center py-8 text-xs text-slate-400">
               Chưa có danh sách đi chợ. Hãy bấm "Tạo / Đổi thực đơn" để sinh danh sách tự động!
             </div>
           )}
@@ -840,38 +847,38 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
 
       {/* Modal: Edit Planned Meal & Calories */}
       {editingMeal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
+          <div className="liquid-glass rounded-[32px] border border-white/20 w-full max-w-md p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3.5">
               <div className="flex items-center gap-2">
                 <Pencil className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-sm font-bold text-white uppercase tracking-wide">
+                <h3 className="text-sm font-black text-white uppercase tracking-wide">
                   Chỉnh Sửa Calo • {editingMeal.mealType === 'breakfast' ? 'Bữa Sáng' : editingMeal.mealType === 'lunch' ? 'Bữa Trưa' : editingMeal.mealType === 'dinner' ? 'Bữa Tối' : 'Bữa Phụ'}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingMeal(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-slate-400 hover:text-white p-1 rounded-xl liquid-glass-btn"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-slate-400 font-medium mb-1">Tên món ăn trong thực đơn:</label>
+                <label className="block text-slate-300 font-medium mb-1.5">Tên món ăn trong thực đơn:</label>
                 <input
                   type="text"
                   value={editMealName}
                   onChange={(e) => setEditMealName(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3.5 py-2.5 liquid-glass-input rounded-xl text-white text-sm"
                 />
               </div>
 
               {/* Calories Editor with quick buttons */}
-              <div className="bg-slate-950/80 p-3 rounded-xl border border-emerald-500/30">
-                <label className="block text-emerald-400 font-bold mb-1.5 flex items-center gap-1.5">
+              <div className="liquid-glass-emerald p-4 rounded-2xl border border-emerald-500/30">
+                <label className="block text-emerald-300 font-bold mb-2 flex items-center gap-1.5">
                   <Flame className="w-4 h-4 text-emerald-400" />
                   <span>Lượng Calories (Tự do chỉnh sửa):</span>
                 </label>
@@ -879,7 +886,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setEditMealCalories(prev => Math.max(0, prev - 50))}
-                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    className="px-3 py-2 liquid-glass-btn active:scale-95 text-slate-200 font-bold rounded-xl transition"
                     title="Giảm 50 calo"
                   >
                     -50
@@ -887,7 +894,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setEditMealCalories(prev => Math.max(0, prev - 10))}
-                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    className="px-3 py-2 liquid-glass-btn active:scale-95 text-slate-200 font-bold rounded-xl transition"
                     title="Giảm 10 calo"
                   >
                     -10
@@ -898,12 +905,12 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     max="9999"
                     value={editMealCalories}
                     onChange={(e) => setEditMealCalories(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="flex-1 text-center font-black text-emerald-400 text-xl py-1 bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-emerald-500"
+                    className="flex-1 text-center font-black text-emerald-300 text-2xl py-1.5 liquid-glass border border-emerald-500/30 rounded-xl focus:outline-none focus:border-emerald-400"
                   />
                   <button
                     type="button"
                     onClick={() => setEditMealCalories(prev => prev + 10)}
-                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    className="px-3 py-2 liquid-glass-btn active:scale-95 text-slate-200 font-bold rounded-xl transition"
                     title="Tăng 10 calo"
                   >
                     +10
@@ -911,7 +918,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setEditMealCalories(prev => prev + 50)}
-                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    className="px-3 py-2 liquid-glass-btn active:scale-95 text-slate-200 font-bold rounded-xl transition"
                     title="Tăng 50 calo"
                   >
                     +50
@@ -919,26 +926,26 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-slate-400 font-medium mb-1">Khẩu phần:</label>
+                  <label className="block text-slate-300 font-medium mb-1">Khẩu phần:</label>
                   <input
                     type="text"
                     value={editMealServing}
                     onChange={(e) => setEditMealServing(e.target.value)}
                     placeholder="1 đĩa, 200g..."
-                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 liquid-glass-input rounded-xl text-white text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 font-medium mb-1">Ước tính giá (VNĐ):</label>
+                  <label className="block text-slate-300 font-medium mb-1">Ước tính giá (VNĐ):</label>
                   <input
                     type="number"
                     min="0"
                     step="1000"
                     value={editMealCost}
                     onChange={(e) => setEditMealCost(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-amber-400 font-medium text-xs focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 liquid-glass-input rounded-xl text-amber-300 font-bold text-xs"
                   />
                 </div>
               </div>
@@ -952,7 +959,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     min="0"
                     value={editMealProtein}
                     onChange={(e) => setEditMealProtein(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-emerald-400 font-semibold text-xs focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 liquid-glass-input rounded-xl text-emerald-300 font-semibold text-xs"
                   />
                 </div>
                 <div>
@@ -962,7 +969,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     min="0"
                     value={editMealCarbs}
                     onChange={(e) => setEditMealCarbs(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-amber-400 font-semibold text-xs focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 liquid-glass-input rounded-xl text-amber-300 font-semibold text-xs"
                   />
                 </div>
                 <div>
@@ -972,12 +979,12 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     min="0"
                     value={editMealFat}
                     onChange={(e) => setEditMealFat(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-rose-400 font-semibold text-xs focus:outline-none focus:border-rose-500"
+                    className="w-full px-3 py-2 liquid-glass-input rounded-xl text-rose-300 font-semibold text-xs"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-slate-400 text-[11px] mb-1">Kali (mg - xả nước):</label>
                   <input
@@ -985,7 +992,7 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     min="0"
                     value={editMealPotassium}
                     onChange={(e) => setEditMealPotassium(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-cyan-400 font-semibold text-xs focus:outline-none focus:border-cyan-500"
+                    className="w-full px-3 py-2 liquid-glass-input rounded-xl text-cyan-300 font-semibold text-xs"
                   />
                 </div>
                 <div>
@@ -995,27 +1002,27 @@ export const MealPlannerView: React.FC<MealPlannerViewProps> = ({
                     min="0"
                     value={editMealSodium}
                     onChange={(e) => setEditMealSodium(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 font-semibold text-xs focus:outline-none focus:border-slate-600"
+                    className="w-full px-3 py-2 liquid-glass-input rounded-xl text-slate-300 font-semibold text-xs"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-slate-800">
+            <div className="flex gap-2.5 pt-3 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setEditingMeal(null)}
-                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition"
+                className="flex-1 py-2.5 liquid-glass-btn text-slate-300 font-semibold rounded-xl text-xs transition"
               >
                 Hủy
               </button>
               <button
                 type="button"
                 onClick={handleSaveEditedMeal}
-                className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-lg shadow-emerald-500/20"
+                className="flex-1 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-400 hover:brightness-110 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-lg shadow-emerald-500/25"
               >
-                <Check className="w-4 h-4" />
-                <span>Lưu & Cập Nhật Tổng</span>
+                <Check className="w-4 h-4 stroke-[3]" />
+                <span>Lưu & Cập Nhật</span>
               </button>
             </div>
           </div>

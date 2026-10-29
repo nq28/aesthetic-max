@@ -15,32 +15,37 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenSettings, 
   onOpenTheme,
   onTogglePhoneFrame,
-  isPhoneFrame
+  isPhoneFrame 
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-[#07090e]/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3">
+    <header className="sticky top-0 z-40 backdrop-blur-2xl bg-[#05070b]/60 border-b border-white/[0.08] px-4 py-3 shadow-[0_4px_30px_rgba(0,0,0,0.3)] transition-all duration-300">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         
         {/* Brand */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-400 flex items-center justify-center text-slate-950 font-black shadow-md shadow-emerald-500/20">
-            <Sparkles className="w-4 h-4 fill-slate-950" />
+        <div className="flex items-center gap-2.5 group cursor-default">
+          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-400 via-teal-300 to-cyan-400 flex items-center justify-center text-slate-950 font-black shadow-[0_0_20px_rgba(52,211,153,0.4)] border border-white/40 transition-transform duration-300 group-hover:scale-105 active:scale-95">
+            <Sparkles className="w-4 h-4 fill-slate-950 stroke-none" />
           </div>
           <div>
-            <div className="text-sm font-black text-white tracking-wide flex items-center gap-1">
-              <span>AESTHETIC</span>
-              <span className="text-emerald-400">MAX</span>
+            <div className="text-sm font-black tracking-wider flex items-center gap-1">
+              <span className="text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]">AESTHETIC</span>
+              <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent font-extrabold">MAX</span>
             </div>
-            <div className="text-[10px] text-slate-400 -mt-0.5">CaloTrack & Looksmax AI</div>
+            <div className="text-[10px] text-slate-400 font-medium tracking-tight -mt-0.5 flex items-center gap-1">
+              <span>Next-Gen Body & Face AI</span>
+              <span className="w-1 h-1 rounded-full bg-emerald-400 animate-ping"></span>
+            </div>
           </div>
         </div>
 
         {/* Right Actions */}
         <div className="flex items-center gap-2">
           {userProfile && (
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-semibold text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>{userProfile.weight}kg • {userProfile.currentBodyFat}% BF</span>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full liquid-glass-btn text-[11px] font-semibold text-slate-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse"></span>
+              <span>{userProfile.weight}kg</span>
+              <span className="text-white/20">•</span>
+              <span className="text-cyan-300">{userProfile.currentBodyFat}% BF</span>
             </div>
           )}
 
@@ -48,22 +53,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={onTogglePhoneFrame}
-              className={`p-2 rounded-xl border transition hidden md:flex items-center gap-1 text-xs font-semibold ${
+              className={`p-2 rounded-2xl border transition-all duration-200 hidden md:flex items-center gap-1.5 text-xs font-semibold ${
                 isPhoneFrame
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm'
-                  : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-white'
+                  ? 'liquid-pill-active text-emerald-300'
+                  : 'liquid-glass-btn text-slate-300 hover:text-white'
               }`}
               title="Bật/Tắt Giả lập màn hình điện thoại Android"
             >
               <Smartphone className="w-4 h-4" />
-              <span className="text-[11px]">{isPhoneFrame ? 'Khung Android' : 'Khung Android'}</span>
+              <span className="text-[11px]">{isPhoneFrame ? 'Khung Điện Thoại' : 'Khung Điện Thoại'}</span>
             </button>
           )}
 
           <button
             type="button"
             onClick={onOpenTheme}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-purple-400 hover:text-purple-300 transition"
+            className="p-2.5 rounded-2xl liquid-glass-btn text-purple-300 hover:text-purple-200 hover:shadow-[0_0_15px_rgba(192,132,252,0.3)] transition-all duration-200"
             title="Tùy biến giao diện & Đổi màu nền"
           >
             <Palette className="w-4 h-4" />
@@ -72,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             type="button"
             onClick={onOpenSettings}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition"
+            className="p-2.5 rounded-2xl liquid-glass-btn text-slate-300 hover:text-white hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-200"
             title="Cài đặt"
           >
             <Settings className="w-4 h-4" />

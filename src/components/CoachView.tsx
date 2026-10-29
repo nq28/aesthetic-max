@@ -308,18 +308,18 @@ export const CoachView: React.FC<CoachViewProps> = ({
     <div className="flex flex-col h-[calc(100vh-140px)] max-h-[850px] pb-16">
       
       {/* Coach Header Bar */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 mb-3 flex items-center justify-between shadow-xl backdrop-blur-md shrink-0">
+      <div className="liquid-glass-card rounded-[24px] p-3.5 mb-3 flex items-center justify-between shadow-xl backdrop-blur-2xl border border-white/10 shrink-0">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-emerald-500/20">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-emerald-500/25">
               <Bot className="w-5 h-5 stroke-[2.5]" />
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-950 rounded-full animate-pulse"></span>
+            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 border-2 border-slate-950 rounded-full animate-pulse shadow-sm shadow-emerald-400/50"></span>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-white">Coach Max (AI Personal Trainer)</h2>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
+              <h2 className="text-sm font-black text-white">Coach Max (AI Personal Trainer)</h2>
+              <span className="text-[10px] px-2.5 py-0.5 rounded-full liquid-glass-cyan text-cyan-300 font-bold border border-cyan-500/30">
                 Gemini Vision & TTS
               </span>
             </div>
@@ -331,7 +331,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
           <button
             type="button"
             onClick={() => setIsCallOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-md shadow-cyan-500/25"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-emerald-400 hover:brightness-110 text-slate-950 font-black rounded-xl text-xs transition shadow-lg shadow-cyan-500/25 active:scale-95"
             title="Gọi thoại trực tiếp với Coach Max"
           >
             <PhoneCall className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -341,7 +341,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
           <button
             type="button"
             onClick={handleClearChat}
-            className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition"
+            className="p-2 rounded-xl text-slate-400 hover:text-rose-400 liquid-glass-btn transition"
             title="Xóa lịch sử trò chuyện"
           >
             <Trash2 className="w-4 h-4" />
@@ -392,10 +392,10 @@ export const CoachView: React.FC<CoachViewProps> = ({
               <div className="max-w-[88%] sm:max-w-[78%] space-y-2">
                 
                 <div
-                  className={`rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-md ${
+                  className={`rounded-[22px] px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-lg ${
                     isUser
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-tr-sm font-medium whitespace-pre-wrap'
-                      : 'bg-slate-900/95 border border-slate-800 text-slate-200 rounded-tl-sm'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold rounded-tr-sm shadow-emerald-500/20 whitespace-pre-wrap'
+                      : 'liquid-glass rounded-tl-sm border border-white/10 text-slate-200'
                   }`}
                 >
                   {/* Attached Image Preview if Sent by User */}
@@ -693,7 +693,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
             type="button"
             onClick={() => handleSendMessage(q)}
             disabled={isLoading}
-            className="text-[11px] whitespace-nowrap px-3 py-1.5 bg-slate-900/90 hover:bg-slate-850 hover:border-emerald-500/50 text-slate-300 hover:text-emerald-300 border border-slate-800 rounded-full transition shrink-0"
+            className="text-[11px] whitespace-nowrap px-3.5 py-1.5 liquid-glass hover:bg-white/[0.08] text-slate-300 hover:text-emerald-300 border border-white/10 rounded-full transition shrink-0 font-medium"
           >
             {q}
           </button>
@@ -706,7 +706,7 @@ export const CoachView: React.FC<CoachViewProps> = ({
           e.preventDefault();
           handleSendMessage();
         }}
-        className="bg-slate-900 border border-slate-800 rounded-2xl p-2 flex items-center gap-2 shadow-xl shrink-0"
+        className="liquid-glass-dock rounded-[24px] p-2 flex items-center gap-2 border border-white/15 shadow-2xl shrink-0"
       >
         {/* Hidden File Input for Camera/Gallery */}
         <input
@@ -722,10 +722,10 @@ export const CoachView: React.FC<CoachViewProps> = ({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading}
-          className={`p-2.5 rounded-xl border transition shrink-0 flex items-center justify-center ${
+          className={`p-2.5 rounded-2xl border transition shrink-0 flex items-center justify-center ${
             selectedImage
-              ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50'
-              : 'bg-slate-950 text-slate-400 hover:text-white border-slate-800 hover:border-slate-700'
+              ? 'liquid-glass-cyan text-cyan-300 border-cyan-400/50'
+              : 'liquid-glass-btn text-slate-300 hover:text-white'
           }`}
           title="Chụp hoặc tải ảnh món ăn / thể hình"
         >
@@ -738,13 +738,13 @@ export const CoachView: React.FC<CoachViewProps> = ({
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
           disabled={isLoading}
-          className="flex-1 bg-transparent px-2 py-2 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none"
+          className="flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-white placeholder:text-slate-400 focus:outline-none font-medium"
         />
 
         <button
           type="submit"
           disabled={isLoading || (!inputMessage.trim() && !selectedImage)}
-          className="p-2.5 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 disabled:bg-slate-800 disabled:opacity-40 text-slate-950 font-bold rounded-xl transition shadow-md shadow-emerald-500/20 shrink-0"
+          className="p-2.5 bg-gradient-to-r from-emerald-500 to-teal-400 hover:brightness-110 disabled:opacity-30 disabled:pointer-events-none text-slate-950 font-black rounded-2xl transition shadow-lg shadow-emerald-500/25 shrink-0 active:scale-95"
         >
           <Send className="w-4 h-4 stroke-[2.5]" />
         </button>

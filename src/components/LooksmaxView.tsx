@@ -210,27 +210,27 @@ export const LooksmaxView: React.FC<LooksmaxViewProps> = ({
     <div className="space-y-6 pb-20">
       
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-purple-950/40 via-slate-900 to-emerald-950/40 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="liquid-glass-card rounded-[28px] p-5 sm:p-6 relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <div className="flex items-center gap-2 text-purple-400 text-xs font-bold uppercase tracking-wider mb-1">
-              <Zap className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-purple-400 text-xs font-black uppercase tracking-wider mb-1">
+              <Zap className="w-4 h-4 text-purple-400" />
               <span>Craniofacial Looksmaxxing AI (PSL & Appeal)</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-white">Chấm Điểm & Nâng Tầm Khuôn Mặt</h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-300/80 mt-1">
               Phân tích tỷ lệ giải phẫu học, xương hàm Maxilla, góc nghiêng và xả nước sưng mặt (Debloat).
             </p>
           </div>
 
           {/* Aesthetic Toggle Switch */}
-          <div className="bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 flex items-center gap-1 text-xs">
+          <div className="liquid-glass p-1.5 rounded-2xl border border-white/10 flex items-center gap-1.5 text-xs shrink-0">
             <button
               type="button"
               onClick={() => handleToggleStyle('asian_pretty_boy')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition ${
+              className={`px-3.5 py-1.5 rounded-xl font-bold transition ${
                 userProfile.aestheticStyle === 'asian_pretty_boy'
-                  ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                  ? 'liquid-pill-active text-emerald-300 shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -239,13 +239,13 @@ export const LooksmaxView: React.FC<LooksmaxViewProps> = ({
             <button
               type="button"
               onClick={() => handleToggleStyle('western_psl')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition ${
+              className={`px-3.5 py-1.5 rounded-xl font-bold transition ${
                 userProfile.aestheticStyle === 'western_psl'
-                  ? 'bg-purple-600 text-white shadow-sm'
+                  ? 'liquid-glass-purple text-purple-200 border-purple-500/40 shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              ⚔️ Âu Mỹ (PSL Dimorphism)
+              ⚔️ Âu Mỹ (PSL)
             </button>
           </div>
         </div>
@@ -253,17 +253,17 @@ export const LooksmaxView: React.FC<LooksmaxViewProps> = ({
 
       {/* Success Notification Bar */}
       {syncSuccessMessage && (
-        <div className="bg-emerald-950/70 border border-emerald-500/50 p-4 rounded-xl text-emerald-200 text-xs flex items-center gap-3 animate-fade-in shadow-xl">
+        <div className="liquid-glass-emerald border border-emerald-500/40 p-4 rounded-2xl text-emerald-200 text-xs flex items-center gap-3 animate-fade-in shadow-xl">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-          <span className="font-medium">{syncSuccessMessage}</span>
+          <span className="font-bold">{syncSuccessMessage}</span>
         </div>
       )}
 
       {/* Camera / Multi-Angle Photo Scanner Section */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5">
+      <div className="liquid-glass-card rounded-[28px] p-5 sm:p-6 space-y-5 shadow-xl">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div>
-            <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
+            <h2 className="text-sm font-black text-slate-100 uppercase tracking-wide flex items-center gap-2">
               <Camera className="w-4 h-4 text-purple-400" />
               <span>Quét 3D Sọ Mặt Đa Góc Chụp (2 - 3 Ảnh)</span>
             </h2>
@@ -272,7 +272,7 @@ export const LooksmaxView: React.FC<LooksmaxViewProps> = ({
             </p>
           </div>
           
-          <div className="px-2.5 py-1 rounded-full text-[11px] font-bold border flex items-center gap-1.5 self-start sm:self-auto bg-purple-950/60 text-purple-300 border-purple-500/30">
+          <div className="px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 self-start sm:self-auto liquid-glass-purple text-purple-300 border border-purple-500/30">
             <span>Đã tải: {[frontImage, sideImage, threeQuarterImage].filter(Boolean).length}/3 góc</span>
           </div>
         </div>

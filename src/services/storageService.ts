@@ -297,6 +297,11 @@ export const storageService = {
     return next;
   },
 
+  saveWaterIntake: (amountMl: number): void => {
+    const key = `${KEYS.WATER_INTAKE}_${new Date().toISOString().slice(0, 10)}`;
+    localStorage.setItem(key, Math.max(0, amountMl).toString());
+  },
+
   // Coach Messages
   getCoachMessages: (): CoachMessage[] => {
     try {

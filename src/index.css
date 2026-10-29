@@ -7,63 +7,227 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #07090e;
-  color: #f1f5f9;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #05070b;
+  color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 /* Custom sleek scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
+  backdrop-filter: blur(8px);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: rgba(255, 255, 255, 0.22);
 }
 
-/* Glassmorphism helpers */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+/* ==========================================================================
+   LIQUID GLASS & VISIONOS DESIGN SYSTEM
+   ========================================================================== */
+
+/* 1. Ultra Liquid Glass (for floating docks, hero navigation & floating modals) */
+.liquid-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 
+    0 24px 60px -12px rgba(0, 0, 0, 0.7),
+    0 8px 24px -4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* 2. Liquid Glass Card (for all dashboard, food, and looksmax cards) */
+.liquid-glass-card {
+  background: linear-gradient(145deg, rgba(17, 24, 39, 0.65) 0%, rgba(8, 12, 20, 0.75) 100%);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 
+    0 16px 40px -8px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 
+    0 20px 48px -10px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+}
+
+/* 3. Liquid Glass Floating Dock (Bottom Navigation) */
+.liquid-glass-dock {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.65) 0%, rgba(5, 8, 15, 0.82) 100%);
+  backdrop-filter: blur(32px) saturate(210%);
+  -webkit-backdrop-filter: blur(32px) saturate(210%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 25px 60px -10px rgba(0, 0, 0, 0.85),
+    0 10px 25px -5px rgba(0, 0, 0, 0.6),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* 4. Active Liquid Pill (Active tab/pill selection) */
+.liquid-pill-active {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.28) 0%, rgba(6, 182, 212, 0.18) 100%);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  box-shadow: 
+    0 0 20px rgba(16, 185, 129, 0.3),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.35);
 }
 
-.glass-card {
-  background: rgba(18, 24, 38, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.glass-input {
-  background: rgba(11, 15, 25, 0.8);
+/* 5. Liquid Glass Buttons */
+.liquid-glass-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 6px 16px -2px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.glass-input:focus {
-  border-color: #38bdf8;
-  box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+.liquid-glass-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.06) 100%);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
 }
 
-/* Neon glow effects */
-.glow-emerald {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+.liquid-glass-btn:active {
+  transform: translateY(1px) scale(0.98);
 }
-.glow-cyan {
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+
+/* 6. Liquid Glass Input Fields */
+.liquid-glass-input {
+  background: rgba(8, 12, 20, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.glow-purple {
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.25);
+
+.liquid-glass-input:focus {
+  background: rgba(12, 18, 30, 0.85);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 
+    0 0 20px rgba(56, 189, 248, 0.2),
+    inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  outline: none;
+}
+
+/* 7. Liquid Glass Accent Cards (for emerald/cyan/purple highlights) */
+.liquid-glass-emerald {
+  background: linear-gradient(145deg, rgba(6, 78, 59, 0.25) 0%, rgba(8, 12, 20, 0.7) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  box-shadow: 
+    0 16px 36px -8px rgba(6, 78, 59, 0.35),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.liquid-glass-amber {
+  background: linear-gradient(145deg, rgba(120, 53, 15, 0.25) 0%, rgba(8, 12, 20, 0.7) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  box-shadow: 
+    0 16px 36px -8px rgba(120, 53, 15, 0.35),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.liquid-glass-cyan {
+  background: linear-gradient(145deg, rgba(14, 116, 144, 0.25) 0%, rgba(8, 12, 20, 0.7) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 
+    0 16px 36px -8px rgba(14, 116, 144, 0.35),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.liquid-glass-purple {
+  background: linear-gradient(145deg, rgba(88, 28, 135, 0.25) 0%, rgba(8, 12, 20, 0.7) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  box-shadow: 
+    0 16px 36px -8px rgba(88, 28, 135, 0.35),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================================================
+   ANIMATIONS & AURORA LIGHTING
+   ========================================================================== */
+
+@keyframes float-aurora-1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -40px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 25px) scale(0.95);
+  }
+}
+
+@keyframes float-aurora-2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(-35px, 30px) scale(1.08);
+  }
+  66% {
+    transform: translate(25px, -20px) scale(0.92);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-aurora-1 {
+  animation: float-aurora-1 18s ease-in-out infinite;
+}
+
+.animate-aurora-2 {
+  animation: float-aurora-2 22s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 4s ease-in-out infinite;
 }
 
 /* HUD Scanning animations */
@@ -74,4 +238,14 @@ body {
 
 .animate-scan {
   animation: scanline 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Shimmer overlay for sleek loading & hero accents */
+.shimmer-text {
+  background: linear-gradient(90deg, #ffffff 0%, #34d399 25%, #38bdf8 50%, #ffffff 75%, #ffffff 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer-sweep 6s linear infinite;
 }

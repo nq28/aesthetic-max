@@ -203,8 +203,15 @@ export const App: React.FC = () => {
         />
       )}
 
+      {/* Ambient Fluid Aurora Light Meshes (Provides the colourful backlighting for Liquid Glass) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full bg-emerald-500/12 blur-[140px] animate-aurora-1"></div>
+        <div className="absolute top-1/3 -right-28 w-[450px] h-[450px] rounded-full bg-cyan-500/10 blur-[150px] animate-aurora-2"></div>
+        <div className="absolute -bottom-20 left-1/4 w-[480px] h-[480px] rounded-full bg-purple-600/10 blur-[160px] animate-pulse-subtle"></div>
+      </div>
+
       <div className={`relative z-10 flex flex-col min-h-screen transition-all ${
-        isPhoneFrame ? 'items-center justify-center p-2 sm:p-6 bg-black/60 min-h-screen' : ''
+        isPhoneFrame ? 'items-center justify-center p-2 sm:p-6 bg-black/70 min-h-screen' : ''
       }`}>
         {/* Onboarding Flow: Triggered if no user profile exists */}
         {!userProfile && (
@@ -213,8 +220,17 @@ export const App: React.FC = () => {
 
         {/* Main App Layout */}
         {userProfile && (
-          <div className={isPhoneFrame ? 'w-full max-w-[420px] h-[870px] border-[8px] border-slate-700/80 rounded-[48px] shadow-2xl relative overflow-hidden flex flex-col bg-[#07090e] ring-1 ring-white/10' : 'w-full flex flex-col min-h-screen'}>
+          <div className={isPhoneFrame ? 'w-full max-w-[420px] h-[870px] border-[8px] border-slate-700/80 rounded-[48px] shadow-2xl relative overflow-hidden flex flex-col bg-[#05070b] ring-1 ring-white/10' : 'w-full flex flex-col min-h-screen'}>
             
+            {/* Phone Frame Ambient Blobs */}
+            {isPhoneFrame && (
+              <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+                <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-emerald-500/15 blur-[80px]"></div>
+                <div className="absolute top-1/3 -right-20 w-64 h-64 rounded-full bg-cyan-500/12 blur-[80px]"></div>
+                <div className="absolute bottom-20 -left-10 w-64 h-64 rounded-full bg-purple-500/12 blur-[90px]"></div>
+              </div>
+            )}
+
             {/* Android Punch Hole & Status Bar */}
             {isPhoneFrame && (
               <div className="bg-black/90 px-6 py-2.5 flex items-center justify-between text-[11px] text-slate-300 select-none shrink-0 relative z-50">
@@ -237,64 +253,70 @@ export const App: React.FC = () => {
               isPhoneFrame={isPhoneFrame}
             />
 
-            {/* Main Content Area */}
-            <main className={`flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 ${isPhoneFrame ? 'overflow-y-auto' : ''}`}>
-              {activeTab === 'dashboard' && (
-                <DashboardView
-                  userProfile={userProfile}
-                  todayFoodItems={todayFoodItems}
-                  nutrients={nutrients}
-                  currentPlan={currentPlan}
-                  onNavigate={setActiveTab}
-                  onWaterUpdate={setWaterAmount}
-                  waterAmount={waterAmount}
-                />
-              )}
+            {/* Main Content Area with Bottom Padding for Floating Liquid Dock */}
+            <main className={`flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 pb-28 sm:pb-32 ${isPhoneFrame ? 'overflow-y-auto' : ''}`}>
+              <div key={activeTab} className="transition-all duration-300">
+                {activeTab === 'dashboard' && (
+                  <DashboardView
+                    userProfile={userProfile}
+                    todayFoodItems={todayFoodItems}
+                    nutrients={nutrients}
+                    currentPlan={currentPlan}
+                    onNavigate={setActiveTab}
+                    onWaterUpdate={setWaterAmount}
+                    waterAmount={waterAmount}
+                  />
+                )}
 
-              {activeTab === 'food' && (
-                <FoodTrackerView
-                  userProfile={userProfile}
-                  nutrients={nutrients}
-                  onNutrientsUpdate={setNutrients}
-                  onFoodAdded={handleFoodAdded}
-                  onFoodUpdated={handleFoodUpdated}
-                  todayFoodItems={todayFoodItems}
-                  onFoodDeleted={handleFoodDeleted}
-                  currentPlan={currentPlan}
-                />
-              )}
+                {activeTab === 'food' && (
+                  <FoodTrackerView
+                    userProfile={userProfile}
+                    nutrients={nutrients}
+                    onNutrientsUpdate={setNutrients}
+                    onFoodAdded={handleFoodAdded}
+                    onFoodUpdated={handleFoodUpdated}
+                    todayFoodItems={todayFoodItems}
+                    onFoodDeleted={handleFoodDeleted}
+                    currentPlan={currentPlan}
+                  />
+                )}
 
-              {activeTab === 'looksmax' && (
-                <LooksmaxView
-                  userProfile={userProfile}
-                  currentPlan={currentPlan}
-                  onPlanUpdate={handlePlanUpdate}
-                  onProfileUpdate={setUserProfile}
-                />
-              )}
+                {activeTab === 'looksmax' && (
+                  <LooksmaxView
+                    userProfile={userProfile}
+                    currentPlan={currentPlan}
+                    onPlanUpdate={handlePlanUpdate}
+                    onProfileUpdate={setUserProfile}
+                  />
+                )}
 
-              {activeTab === 'coach' && (
-                <CoachView
-                  userProfile={userProfile}
-                  currentPlan={currentPlan}
-                  todayFoodItems={todayFoodItems}
-                  onFoodAdded={handleFoodAdded}
-                  onNavigateToTab={setActiveTab}
-                />
-              )}
+                {activeTab === 'coach' && (
+                  <CoachView
+                    userProfile={userProfile}
+                    currentPlan={currentPlan}
+                    todayFoodItems={todayFoodItems}
+                    onFoodAdded={handleFoodAdded}
+                    onNavigateToTab={setActiveTab}
+                  />
+                )}
 
-              {activeTab === 'plan' && (
-                <PlanView
-                  currentPlan={currentPlan}
-                  userProfile={userProfile}
-                  onPlanUpdate={handlePlanUpdate}
-                  onNavigate={setActiveTab}
-                />
-              )}
+                {activeTab === 'plan' && (
+                  <PlanView
+                    currentPlan={currentPlan}
+                    userProfile={userProfile}
+                    onPlanUpdate={handlePlanUpdate}
+                    onNavigate={setActiveTab}
+                  />
+                )}
+              </div>
             </main>
 
-            {/* Bottom Navigation */}
-            <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+            {/* Floating Liquid Glass Bottom Navigation */}
+            <BottomNav 
+              activeTab={activeTab} 
+              onTabChange={setActiveTab} 
+              isPhoneFrame={isPhoneFrame} 
+            />
 
             {/* Bottom Android Gesture Bar */}
             {isPhoneFrame && (

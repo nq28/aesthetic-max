@@ -203,17 +203,17 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
   };
 
   return (
-    <div className="space-y-5 pb-20">
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500">
       
       {/* Segmented Sub-Tab Switcher */}
-      <div className="bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 flex gap-1.5 shadow-lg">
+      <div className="liquid-glass p-1.5 rounded-[24px] flex gap-1.5 shadow-2xl relative select-none">
         <button
           type="button"
           onClick={() => setActiveSubTab('planner')}
-          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition ${
+          className={`flex-1 py-3 px-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 ${
             activeSubTab === 'planner'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20'
-              : 'text-slate-400 hover:text-white'
+              ? 'liquid-pill-active text-emerald-200 shadow-[0_0_18px_rgba(52,211,153,0.35)]'
+              : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
           }`}
         >
           <UtensilsCrossed className="w-4 h-4" />
@@ -223,10 +223,10 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveSubTab('scanner')}
-          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition ${
+          className={`flex-1 py-3 px-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 ${
             activeSubTab === 'scanner'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20'
-              : 'text-slate-400 hover:text-white'
+              ? 'liquid-pill-active text-emerald-200 shadow-[0_0_18px_rgba(52,211,153,0.35)]'
+              : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
           }`}
         >
           <Camera className="w-4 h-4" />
@@ -242,364 +242,369 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
           onNavigateToScan={() => setActiveSubTab('scanner')}
         />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in duration-300">
           {/* Top Banner */}
-          <div className="bg-gradient-to-r from-emerald-950/40 via-slate-900 to-cyan-950/40 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <div>
-            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
-              <Sparkles className="w-4 h-4" />
-              <span>AI Multi-Nutrient Tracker (Gemini Vision)</span>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-black text-white">Quét Calo & Vi Chất Thức Ăn</h1>
-            <p className="text-xs text-slate-400 mt-1">
-              Phân tích từng gram protein, vi chất tăng chiều cao & khoáng chất xả nước mặt (Debloat).
-            </p>
-          </div>
+          <div className="liquid-glass-emerald rounded-[28px] p-5 relative overflow-hidden shadow-2xl">
+            <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-1">
+                  <Sparkles className="w-4 h-4 text-emerald-400 drop-shadow-[0_0_8px_#34d399]" />
+                  <span>AI Multi-Nutrient Tracker (Gemini Vision)</span>
+                </div>
+                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Quét Calo & Vi Chất Thức Ăn</h1>
+                <p className="text-xs text-slate-300/80 mt-1">
+                  Phân tích từng gram protein, vi chất tăng chiều cao & khoáng chất xả nước mặt (Debloat).
+                </p>
+              </div>
 
-          <button
-            type="button"
-            onClick={() => setShowAddNutrientModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-semibold transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Thêm chất theo dõi mới</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Success Notification Banner */}
-      {saveSuccessMsg && (
-        <div className="p-3.5 bg-emerald-500/20 border border-emerald-500/50 rounded-xl text-xs font-bold text-emerald-300 flex items-center gap-2 shadow-lg animate-fade-in">
-          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>{saveSuccessMsg}</span>
-        </div>
-      )}
-
-      {/* Input / Scanner Section */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl">
-        <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
-          <span>1. Nhập hoặc chụp ảnh món ăn</span>
-        </h2>
-
-        {/* Meal Type Selector */}
-        <div className="grid grid-cols-4 gap-2">
-          {[
-            { id: 'breakfast', label: 'Bữa Sáng' },
-            { id: 'lunch', label: 'Bữa Trưa' },
-            { id: 'dinner', label: 'Bữa Tối' },
-            { id: 'snack', label: 'Bữa Phụ' }
-          ].map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => setMealType(m.id as any)}
-              className={`py-2 px-1 rounded-xl text-xs font-semibold text-center transition ${
-                mealType === m.id
-                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                  : 'bg-slate-950/60 text-slate-400 border border-slate-800 hover:text-white'
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Text Description Input */}
-        <div>
-          <label className="block text-xs text-slate-400 mb-1">Miêu tả món ăn (tiếng Việt hoặc tiếng Anh):</label>
-          <input
-            type="text"
-            placeholder="VD: 1 tô phở bò nhiều thịt tái nạm, 2 trứng chần, 1 ly cà phê đen đá ít đường..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
-          />
-        </div>
-
-        {/* Image Upload / Camera Box */}
-        <div className="space-y-2">
-          <label className="block text-xs text-slate-400">Hoặc chụp / chọn ảnh đĩa thức ăn:</label>
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            onChange={handleImageChange}
-            className="hidden"
-          />
-
-          {imagePreview ? (
-            <div className="relative rounded-xl overflow-hidden border border-emerald-500/40 max-h-56 flex items-center justify-center bg-black/60">
-              <img src={imagePreview} alt="Food preview" className="object-cover w-full h-full max-h-56" />
               <button
                 type="button"
-                onClick={() => setImagePreview(null)}
-                className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black text-rose-400 rounded-full transition"
+                onClick={() => setShowAddNutrientModal(true)}
+                className="flex items-center gap-1.5 px-3.5 py-2 liquid-glass-btn text-emerald-300 hover:text-white border-emerald-400/40 rounded-2xl text-xs font-bold transition shadow-sm active:scale-95"
               >
-                <X className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
+                <span>Thêm chất theo dõi mới</span>
               </button>
             </div>
-          ) : (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-slate-800 hover:border-emerald-500/50 rounded-xl p-5 text-center cursor-pointer bg-slate-950/40 transition flex flex-col items-center justify-center gap-2"
+          </div>
+
+          {/* Success Notification Banner */}
+          {saveSuccessMsg && (
+            <div className="p-3.5 liquid-pill-active rounded-2xl text-xs font-bold text-emerald-200 flex items-center gap-2 shadow-lg animate-in fade-in duration-200">
+              <Check className="w-4 h-4 text-emerald-300 shrink-0" />
+              <span>{saveSuccessMsg}</span>
+            </div>
+          )}
+
+          {/* Input / Scanner Section */}
+          <div className="liquid-glass-card rounded-[28px] p-5 sm:p-6 space-y-4 shadow-2xl relative overflow-hidden">
+            <h2 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <span>1. Nhập hoặc chụp ảnh món ăn</span>
+            </h2>
+
+            {/* Meal Type Selector */}
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { id: 'breakfast', label: 'Bữa Sáng' },
+                { id: 'lunch', label: 'Bữa Trưa' },
+                { id: 'dinner', label: 'Bữa Tối' },
+                { id: 'snack', label: 'Bữa Phụ' }
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setMealType(m.id as any)}
+                  className={`py-2.5 px-1 rounded-2xl text-xs font-bold text-center transition-all duration-200 active:scale-95 ${
+                    mealType === m.id
+                      ? 'liquid-pill-active text-emerald-200 shadow-[0_0_12px_rgba(52,211,153,0.3)]'
+                      : 'liquid-glass text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Text Description Input */}
+            <div>
+              <label className="block text-xs text-slate-300 font-medium mb-1.5">Miêu tả món ăn (tiếng Việt hoặc tiếng Anh):</label>
+              <input
+                type="text"
+                placeholder="VD: 1 tô phở bò nhiều thịt tái nạm, 2 trứng chần, 1 ly cà phê đen đá ít đường..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-4 py-3 liquid-glass-input rounded-2xl text-white text-sm placeholder:text-slate-500"
+              />
+            </div>
+
+            {/* Image Upload / Camera Box */}
+            <div className="space-y-2">
+              <label className="block text-xs text-slate-300 font-medium">Hoặc chụp / chọn ảnh đĩa thức ăn:</label>
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                className="hidden"
+              />
+
+              {imagePreview ? (
+                <div className="relative rounded-2xl overflow-hidden border border-emerald-500/40 max-h-60 flex items-center justify-center bg-black/60 shadow-inner">
+                  <img src={imagePreview} alt="Food preview" className="object-cover w-full h-full max-h-60" />
+                  <button
+                    type="button"
+                    onClick={() => setImagePreview(null)}
+                    className="absolute top-2.5 right-2.5 p-2 bg-black/70 hover:bg-black text-rose-400 rounded-full transition liquid-glass-btn"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-white/15 hover:border-emerald-400/50 rounded-2xl p-6 text-center cursor-pointer bg-white/[0.02] hover:bg-white/[0.04] transition-all flex flex-col items-center justify-center gap-2.5 group"
+                >
+                  <div className="flex gap-2.5 text-slate-400 group-hover:scale-105 transition-transform">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                      <Camera className="w-5 h-5" />
+                    </div>
+                    <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center border border-cyan-500/30">
+                      <Upload className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-200 font-bold">Nhấn vào đây để Chụp ảnh hoặc Tải ảnh từ thư viện</p>
+                  <p className="text-[10px] text-slate-400">Gemini Vision AI sẽ tự động nhận diện món ăn và tính toán dinh dưỡng</p>
+                </div>
+              )}
+            </div>
+
+            {/* Action Button */}
+            <button
+              type="button"
+              onClick={handleAnalyze}
+              disabled={isAnalyzing}
+              className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs flex items-center justify-center gap-2 transition-all uppercase tracking-wider ${
+                isAnalyzing
+                  ? 'bg-white/10 text-slate-500 cursor-not-allowed border border-white/10'
+                  : 'bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 hover:from-emerald-400 hover:to-cyan-300 text-slate-950 shadow-[0_0_25px_rgba(52,211,153,0.35)] active:scale-95 border border-white/40'
+              }`}
             >
-              <div className="flex gap-2 text-slate-400">
-                <Camera className="w-6 h-6 text-emerald-400" />
-                <Upload className="w-6 h-6 text-cyan-400" />
+              {isAnalyzing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Gemini AI Đang Phân Tích Dinh Dưỡng...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 fill-slate-950 stroke-none" />
+                  <span>Quét Dinh Dưỡng Với Gemini AI</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Analysis Result Card */}
+          {scanResult && (
+            <div className="liquid-glass-card rounded-[28px] p-5 sm:p-6 space-y-4 border-emerald-500/40 shadow-2xl animate-in fade-in duration-300 relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 liquid-glass p-4 rounded-2xl border border-white/15">
+                <div className="flex-1 w-full sm:w-auto">
+                  <div className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>KẾT QUẢ PHÂN TÍCH TỪ AI</span>
+                    <span className="text-[10px] text-slate-400 font-normal">(Chạm để sửa tên & calo)</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={scanResult.name}
+                    onChange={(e) => setScanResult(prev => prev ? { ...prev, name: e.target.value } : null)}
+                    placeholder="Tên món ăn"
+                    className="text-base sm:text-lg font-black text-white mt-1 bg-transparent border-b border-transparent hover:border-slate-700 focus:border-emerald-500 focus:outline-none w-full"
+                  />
+                  <input
+                    type="text"
+                    value={scanResult.servingSize || ''}
+                    onChange={(e) => setScanResult(prev => prev ? { ...prev, servingSize: e.target.value } : null)}
+                    placeholder="Khẩu phần (VD: 1 tô, 200g...)"
+                    className="text-xs text-slate-400 bg-transparent border-b border-transparent hover:border-slate-800 focus:border-slate-600 focus:outline-none mt-0.5 w-full"
+                  />
+                </div>
+
+                <div className="flex flex-col items-start sm:items-end shrink-0">
+                  <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Flame className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Calo Tự Do Chỉnh Sửa:</span>
+                  </span>
+                  <div className="flex items-center gap-1.5 bg-black/60 border border-emerald-500/40 rounded-2xl px-2.5 py-1.5 shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => setScanResult(prev => prev ? { ...prev, calories: Math.max(0, prev.calories - 50) } : null)}
+                      className="w-7 h-7 rounded-xl bg-white/10 hover:bg-white/20 active:scale-90 text-xs font-bold text-slate-200 flex items-center justify-center transition"
+                      title="Giảm 50 calo"
+                    >
+                      -50
+                    </button>
+                    <input
+                      type="number"
+                      min="0"
+                      max="9999"
+                      value={scanResult.calories}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        setScanResult(prev => prev ? { ...prev, calories: Math.max(0, val) } : null);
+                      }}
+                      className="w-16 text-center font-black text-emerald-300 text-xl bg-transparent focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setScanResult(prev => prev ? { ...prev, calories: prev.calories + 50 } : null)}
+                      className="w-7 h-7 rounded-xl bg-white/10 hover:bg-white/20 active:scale-90 text-xs font-bold text-slate-200 flex items-center justify-center transition"
+                      title="Tăng 50 calo"
+                    >
+                      +50
+                    </button>
+                    <span className="text-xs text-slate-400 font-semibold pr-1">kcal</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-slate-300 font-medium">Nhấn vào đây để Chụp ảnh hoặc Tải ảnh từ thư viện</p>
-              <p className="text-[10px] text-slate-500">Gemini Vision AI sẽ tự động nhận diện món ăn và tính toán dinh dưỡng</p>
+
+              {/* AI Notes on Debloat / Growth */}
+              {scanResult.aiNotes && (
+                <div className="liquid-glass border border-cyan-500/30 p-3.5 rounded-2xl text-xs text-slate-200 flex items-start gap-2.5">
+                  <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>{scanResult.aiNotes}</span>
+                </div>
+              )}
+
+              {/* Detailed Nutrients Grid */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Chi Tiết Vi Chất & Khoáng Chất:</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {nutrients.map((nutri) => {
+                    const val = scanResult.nutrients[nutri.id] ?? 0;
+                    return (
+                      <div key={nutri.id} className="liquid-glass p-3 rounded-2xl border border-white/10 flex justify-between items-center">
+                        <div>
+                          <div className="text-[11px] font-bold text-slate-200 truncate max-w-[120px]">{nutri.name}</div>
+                          <div className="text-[10px] text-slate-400">Mục tiêu: {nutri.dailyTarget}{nutri.unit}</div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs font-black text-emerald-300">{val}</span>
+                          <span className="text-[10px] text-slate-400 ml-0.5">{nutri.unit}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setScanResult(null)}
+                  className="w-1/3 py-3 liquid-glass-btn text-slate-300 text-xs font-bold rounded-2xl transition"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveToLog}
+                  className="w-2/3 py-3 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 text-xs font-black rounded-2xl flex items-center justify-center gap-1.5 transition shadow-[0_0_20px_rgba(52,211,153,0.35)] active:scale-95"
+                >
+                  <Check className="w-4 h-4 stroke-[3px]" />
+                  Lưu Vào Nhật Ký Ăn Uống Hôm Nay
+                </button>
+              </div>
             </div>
           )}
-        </div>
 
-        {/* Action Button */}
-        <button
-          type="button"
-          onClick={handleAnalyze}
-          disabled={isAnalyzing}
-          className={`w-full py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition uppercase tracking-wider ${
-            isAnalyzing
-              ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 shadow-lg shadow-emerald-500/25'
-          }`}
-        >
-          {isAnalyzing ? (
-            <>
-              <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
-              <span>Gemini AI Đang Phân Tích Dinh Dưỡng...</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4" />
-              <span>Quét Dinh Dưỡng Với Gemini AI</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Analysis Result Card */}
-      {scanResult && (
-        <div className="bg-slate-900/95 border-2 border-emerald-500/50 rounded-2xl p-5 space-y-4 shadow-2xl animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800">
-            <div className="flex-1 w-full sm:w-auto">
-              <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3 text-emerald-400" />
-                <span>KẾT QUẢ PHÂN TÍCH TỪ AI</span>
-                <span className="text-[10px] text-slate-400 font-normal">(Chạm để sửa tên & calo)</span>
-              </div>
-              <input
-                type="text"
-                value={scanResult.name}
-                onChange={(e) => setScanResult(prev => prev ? { ...prev, name: e.target.value } : null)}
-                placeholder="Tên món ăn"
-                className="text-base sm:text-lg font-bold text-white mt-1 bg-transparent border-b border-transparent hover:border-slate-700 focus:border-emerald-500 focus:outline-none w-full"
-              />
-              <input
-                type="text"
-                value={scanResult.servingSize || ''}
-                onChange={(e) => setScanResult(prev => prev ? { ...prev, servingSize: e.target.value } : null)}
-                placeholder="Khẩu phần (VD: 1 tô, 200g...)"
-                className="text-xs text-slate-400 bg-transparent border-b border-transparent hover:border-slate-800 focus:border-slate-600 focus:outline-none mt-0.5 w-full"
-              />
-            </div>
-
-            <div className="flex flex-col items-start sm:items-end shrink-0">
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                <Flame className="w-3 h-3 text-emerald-400" />
-                <span>Calo Tự Do Chỉnh Sửa:</span>
+          {/* Today Food Log List */}
+          <div className="space-y-3">
+            <h2 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+              <span>Các món đã log hôm nay ({todayFoodItems.length})</span>
+              <span className="text-xs font-black text-emerald-400">
+                Tổng: {todayFoodItems.reduce((acc, item) => acc + item.calories, 0)} kcal
               </span>
-              <div className="flex items-center gap-1 bg-slate-900 border border-emerald-500/50 rounded-xl px-2 py-1 shadow-inner">
-                <button
-                  type="button"
-                  onClick={() => setScanResult(prev => prev ? { ...prev, calories: Math.max(0, prev.calories - 50) } : null)}
-                  className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-90 text-xs font-bold text-slate-300 flex items-center justify-center transition"
-                  title="Giảm 50 calo"
-                >
-                  -50
-                </button>
-                <input
-                  type="number"
-                  min="0"
-                  max="9999"
-                  value={scanResult.calories}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value) || 0;
-                    setScanResult(prev => prev ? { ...prev, calories: Math.max(0, val) } : null);
-                  }}
-                  className="w-16 text-center font-black text-emerald-400 text-xl bg-transparent focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => setScanResult(prev => prev ? { ...prev, calories: prev.calories + 50 } : null)}
-                  className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-90 text-xs font-bold text-slate-300 flex items-center justify-center transition"
-                  title="Tăng 50 calo"
-                >
-                  +50
-                </button>
-                <span className="text-xs text-slate-400 font-semibold pr-1">kcal</span>
+            </h2>
+
+            {todayFoodItems.length === 0 ? (
+              <div className="liquid-glass rounded-[28px] p-8 text-center text-xs text-slate-400 border border-white/10">
+                Hôm nay chưa có món ăn nào được log. Hãy chụp ảnh hoặc nhập miêu tả món ăn ở phía trên để bắt đầu theo dõi!
               </div>
-            </div>
-          </div>
-
-          {/* AI Notes on Debloat / Growth */}
-          {scanResult.aiNotes && (
-            <div className="bg-slate-950/70 border border-slate-800 p-3 rounded-xl text-xs text-slate-300 flex items-start gap-2">
-              <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-              <span>{scanResult.aiNotes}</span>
-            </div>
-          )}
-
-          {/* Detailed Nutrients Grid */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Chi Tiết Vi Chất & Khoáng Chất:</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {nutrients.map((nutri) => {
-                const val = scanResult.nutrients[nutri.id] ?? 0;
-                return (
-                  <div key={nutri.id} className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center">
-                    <div>
-                      <div className="text-[11px] font-medium text-slate-300 truncate max-w-[120px]">{nutri.name}</div>
-                      <div className="text-[10px] text-slate-500">Mục tiêu: {nutri.dailyTarget}{nutri.unit}</div>
+            ) : (
+              <div className="space-y-2.5">
+                {todayFoodItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="liquid-glass-card rounded-2xl p-3.5 flex items-center justify-between gap-3 hover:border-white/20 transition group"
+                  >
+                    <div className="flex items-center gap-3">
+                      {item.photoUrl ? (
+                        <img src={item.photoUrl} alt={item.name} className="w-12 h-12 object-cover rounded-xl border border-white/15" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-300 font-black text-sm shadow-[0_0_10px_rgba(52,211,153,0.2)]">
+                          {item.mealType.slice(0, 1).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">{item.name}</h4>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          {item.mealType === 'breakfast' ? 'Bữa sáng' : item.mealType === 'lunch' ? 'Bữa trưa' : item.mealType === 'dinner' ? 'Bữa tối' : 'Bữa phụ'} • {item.servingSize || '1 phần'}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+                          <span className="text-cyan-300">P: {item.nutrients?.protein || 0}g</span>
+                          <span className="text-amber-300">C: {item.nutrients?.carbs || 0}g</span>
+                          <span className="text-rose-300">F: {item.nutrients?.fat || 0}g</span>
+                          <span className="text-slate-400">Muối: {item.nutrients?.sodium || 0}mg</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <span className="text-xs font-bold text-white">{val}</span>
-                      <span className="text-[10px] text-slate-400 ml-0.5">{nutri.unit}</span>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-black text-emerald-300">{item.calories} <span className="text-[10px] text-slate-400 font-normal">kcal</span></span>
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(item)}
+                        className="p-2 liquid-glass-btn text-slate-300 hover:text-emerald-300 rounded-xl transition"
+                        title="Chỉnh sửa calo & món ăn"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onFoodDeleted(item.id)}
+                        className="p-2 liquid-glass-btn text-slate-400 hover:text-rose-400 rounded-xl transition"
+                        title="Xóa món"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setScanResult(null)}
-              className="w-1/3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition"
-            >
-              Hủy bỏ
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveToLog}
-              className="w-2/3 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition shadow-lg shadow-emerald-500/25"
-            >
-              <Check className="w-4 h-4" />
-              Lưu Vào Nhật Ký Ăn Uống Hôm Nay
-            </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      )}
-
-      {/* Today Food Log List */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wide flex items-center justify-between">
-          <span>Các món đã log hôm nay ({todayFoodItems.length})</span>
-          <span className="text-xs text-emerald-400">
-            Tổng: {todayFoodItems.reduce((acc, item) => acc + item.calories, 0)} kcal
-          </span>
-        </h2>
-
-        {todayFoodItems.length === 0 ? (
-          <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6 text-center text-xs text-slate-500">
-            Hôm nay chưa có món ăn nào được log. Hãy chụp ảnh hoặc nhập miêu tả món ăn ở phía trên để bắt đầu theo dõi!
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {todayFoodItems.map((item) => (
-              <div
-                key={item.id}
-                className="bg-slate-900 border border-slate-800/90 rounded-xl p-3 flex items-center justify-between gap-3 hover:border-slate-700 transition"
-              >
-                <div className="flex items-center gap-3">
-                  {item.photoUrl ? (
-                    <img src={item.photoUrl} alt={item.name} className="w-12 h-12 object-cover rounded-lg border border-slate-800" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-emerald-950/40 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xs">
-                      {item.mealType.slice(0, 1).toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <h4 className="text-xs font-bold text-white">{item.name}</h4>
-                    <p className="text-[10px] text-slate-400">
-                      {item.mealType === 'breakfast' ? 'Bữa sáng' : item.mealType === 'lunch' ? 'Bữa trưa' : item.mealType === 'dinner' ? 'Bữa tối' : 'Bữa phụ'} • {item.servingSize || '1 phần'}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-500">
-                      <span>P: {item.nutrients?.protein || 0}g</span>
-                      <span>C: {item.nutrients?.carbs || 0}g</span>
-                      <span>F: {item.nutrients?.fat || 0}g</span>
-                      <span className="text-rose-400">Muối: {item.nutrients?.sodium || 0}mg</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-black text-emerald-400">{item.calories} <span className="text-[10px] text-slate-400 font-normal">kcal</span></span>
-                  <button
-                    type="button"
-                    onClick={() => openEditModal(item)}
-                    className="p-1.5 text-slate-400 hover:text-emerald-400 rounded-lg hover:bg-slate-800 transition"
-                    title="Chỉnh sửa calo & món ăn"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onFoodDeleted(item.id)}
-                    className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition"
-                    title="Xóa món"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      </div>
       )}
 
       {/* Modal: Add New Custom Nutrient */}
       {showAddNutrientModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-2.5">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-2xl animate-in fade-in duration-300">
+          <div className="w-full max-w-md liquid-glass rounded-[32px] border border-white/20 p-6 space-y-4 shadow-[0_25px_60px_rgba(0,0,0,0.85)]">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
                 <Plus className="w-4 h-4 text-emerald-400" />
                 Thêm Chất / Vi Chất Theo Dõi Mới
               </h3>
               <button
                 type="button"
                 onClick={() => setShowAddNutrientModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-white p-1.5 liquid-glass-btn rounded-xl"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateCustomNutrient} className="space-y-3 text-xs">
+            <form onSubmit={handleCreateCustomNutrient} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-slate-300 mb-1">Tên vi chất / thực phẩm bổ sung:</label>
+                <label className="block text-slate-300 font-medium mb-1.5">Tên vi chất / thực phẩm bổ sung:</label>
                 <input
                   type="text"
                   placeholder="VD: Creatine Monohydrate, Omega 3, Vitamin C, Collagen..."
                   value={newNutrientName}
                   onChange={(e) => setNewNutrientName(e.target.value)}
                   required
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none"
+                  className="w-full px-4 py-2.5 liquid-glass-input rounded-2xl text-white text-xs focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 mb-1">Đơn vị đo:</label>
+                  <label className="block text-slate-300 font-medium mb-1.5">Đơn vị đo:</label>
                   <select
                     value={newNutrientUnit}
                     onChange={(e) => setNewNutrientUnit(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none"
+                    className="w-full px-3 py-2.5 liquid-glass-input rounded-2xl text-white text-xs focus:outline-none"
                   >
                     <option value="mg">mg (Miligram)</option>
                     <option value="g">g (Gram)</option>
@@ -610,24 +615,24 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1">Mục tiêu mỗi ngày:</label>
+                  <label className="block text-slate-300 font-medium mb-1.5">Mục tiêu mỗi ngày:</label>
                   <input
                     type="number"
                     min="1"
                     value={newNutrientTarget}
                     onChange={(e) => setNewNutrientTarget(Number(e.target.value))}
                     required
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none"
+                    className="w-full px-3 py-2.5 liquid-glass-input rounded-2xl text-white text-xs focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 mb-1">Nhóm dinh dưỡng:</label>
+                <label className="block text-slate-300 font-medium mb-1.5">Nhóm dinh dưỡng:</label>
                 <select
                   value={newNutrientCategory}
                   onChange={(e) => setNewNutrientCategory(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:border-emerald-500 focus:outline-none"
+                  className="w-full px-3 py-2.5 liquid-glass-input rounded-2xl text-white text-xs focus:outline-none"
                 >
                   <option value="custom">Chất bổ sung tùy chọn (Supplement / Custom)</option>
                   <option value="debloat">Hỗ trợ xả nước mặt (Debloat)</option>
@@ -637,17 +642,17 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                 </select>
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowAddNutrientModal(false)}
-                  className="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl transition"
+                  className="w-1/2 py-3 liquid-glass-btn text-slate-300 font-bold rounded-2xl transition"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition shadow-md shadow-emerald-500/25"
+                  className="w-1/2 py-3 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black rounded-2xl transition shadow-[0_0_20px_rgba(52,211,153,0.35)] active:scale-95"
                 >
                   Tạo chất theo dõi
                 </button>
@@ -659,36 +664,36 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
 
       {/* Modal: Edit Logged Food Item & Calories */}
       {editingFoodItem && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl relative">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-2xl flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="liquid-glass rounded-[32px] border border-white/20 w-full max-w-md p-6 space-y-4 shadow-[0_25px_60px_rgba(0,0,0,0.85)] relative max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
                 <Pencil className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-sm font-bold text-white uppercase tracking-wide">Chỉnh Sửa Calo & Bữa Ăn</h3>
+                <h3 className="text-sm font-black text-white uppercase tracking-wide">Chỉnh Sửa Calo & Bữa Ăn</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingFoodItem(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-slate-400 hover:text-white p-1.5 liquid-glass-btn rounded-xl"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-slate-400 font-medium mb-1">Tên món ăn:</label>
+                <label className="block text-slate-300 font-medium mb-1.5">Tên món ăn:</label>
                 <input
                   type="text"
                   value={editFormName}
                   onChange={(e) => setEditFormName(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-4 py-2.5 liquid-glass-input rounded-2xl text-white text-sm focus:outline-none"
                 />
               </div>
 
               {/* Calories Editor with quick adjust buttons */}
-              <div className="bg-slate-950/80 p-3 rounded-xl border border-emerald-500/30">
-                <label className="block text-emerald-400 font-bold mb-1.5 flex items-center gap-1.5">
+              <div className="liquid-glass-emerald p-4 rounded-2xl border border-emerald-500/30">
+                <label className="block text-emerald-300 font-bold mb-2 flex items-center gap-1.5">
                   <Flame className="w-4 h-4 text-emerald-400" />
                   <span>Lượng Calories (Tự do chỉnh sửa):</span>
                 </label>
@@ -696,7 +701,7 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setEditFormCalories(prev => Math.max(0, prev - 50))}
-                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    className="px-3 py-2 liquid-glass-btn active:scale-95 text-slate-200 font-black rounded-xl transition"
                     title="Giảm 50 calo"
                   >
                     -50
@@ -704,7 +709,7 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setEditFormCalories(prev => Math.max(0, prev - 10))}
-                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    className="px-2.5 py-2 liquid-glass-btn active:scale-95 text-slate-200 font-black rounded-xl transition"
                     title="Giảm 10 calo"
                   >
                     -10
@@ -715,12 +720,12 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                     max="9999"
                     value={editFormCalories}
                     onChange={(e) => setEditFormCalories(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="flex-1 text-center font-black text-emerald-400 text-xl py-1 bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-emerald-500"
+                    className="flex-1 text-center font-black text-emerald-300 text-2xl py-1.5 bg-black/60 border border-emerald-500/40 rounded-xl focus:outline-none shadow-inner"
                   />
                   <button
                     type="button"
                     onClick={() => setEditFormCalories(prev => prev + 10)}
-                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    className="px-2.5 py-2 liquid-glass-btn active:scale-95 text-slate-200 font-black rounded-xl transition"
                     title="Tăng 10 calo"
                   >
                     +10
@@ -728,7 +733,7 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setEditFormCalories(prev => prev + 50)}
-                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold rounded-lg transition"
+                    className="px-3 py-2 liquid-glass-btn active:scale-95 text-slate-200 font-black rounded-xl transition"
                     title="Tăng 50 calo"
                   >
                     +50
@@ -737,75 +742,75 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-400 font-medium mb-1">Khẩu phần / Đơn vị:</label>
+                <label className="block text-slate-300 font-medium mb-1.5">Khẩu phần / Đơn vị:</label>
                 <input
                   type="text"
                   value={editFormServing}
                   onChange={(e) => setEditFormServing(e.target.value)}
                   placeholder="1 tô, 1 đĩa, 200g..."
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-emerald-500"
+                  className="w-full px-4 py-2.5 liquid-glass-input rounded-2xl text-white text-xs focus:outline-none"
                 />
               </div>
 
               {/* Macros */}
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <div>
-                  <label className="block text-slate-400 text-[11px] mb-1">Protein (Đạm - g):</label>
+              <div className="grid grid-cols-2 gap-2.5 pt-1">
+                <div className="liquid-glass p-2.5 rounded-2xl border border-white/10">
+                  <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1">Protein (Đạm - g):</label>
                   <input
                     type="number"
                     min="0"
                     value={editFormProtein}
                     onChange={(e) => setEditFormProtein(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-emerald-400 font-semibold text-xs focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-transparent text-emerald-300 font-black text-sm focus:outline-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-slate-400 text-[11px] mb-1">Carbs (Tinh bột - g):</label>
+                <div className="liquid-glass p-2.5 rounded-2xl border border-white/10">
+                  <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1">Carbs (Tinh bột - g):</label>
                   <input
                     type="number"
                     min="0"
                     value={editFormCarbs}
                     onChange={(e) => setEditFormCarbs(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-amber-400 font-semibold text-xs focus:outline-none focus:border-amber-500"
+                    className="w-full bg-transparent text-amber-300 font-black text-sm focus:outline-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-slate-400 text-[11px] mb-1">Fat (Chất béo - g):</label>
+                <div className="liquid-glass p-2.5 rounded-2xl border border-white/10">
+                  <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1">Fat (Chất béo - g):</label>
                   <input
                     type="number"
                     min="0"
                     value={editFormFat}
                     onChange={(e) => setEditFormFat(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-rose-400 font-semibold text-xs focus:outline-none focus:border-rose-500"
+                    className="w-full bg-transparent text-rose-300 font-black text-sm focus:outline-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-slate-400 text-[11px] mb-1">Natri / Muối (mg):</label>
+                <div className="liquid-glass p-2.5 rounded-2xl border border-white/10">
+                  <label className="block text-slate-400 text-[10px] uppercase font-bold mb-1">Natri / Muối (mg):</label>
                   <input
                     type="number"
                     min="0"
                     value={editFormSodium}
                     onChange={(e) => setEditFormSodium(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-cyan-400 font-semibold text-xs focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-transparent text-cyan-300 font-black text-sm focus:outline-none"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-slate-800">
+            <div className="flex gap-2.5 pt-2 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setEditingFoodItem(null)}
-                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition"
+                className="flex-1 py-3 liquid-glass-btn text-slate-300 font-bold rounded-2xl text-xs transition"
               >
                 Hủy
               </button>
               <button
                 type="button"
                 onClick={handleSaveEditedFood}
-                className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-lg shadow-emerald-500/20"
+                className="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black rounded-2xl text-xs flex items-center justify-center gap-1.5 transition shadow-[0_0_20px_rgba(52,211,153,0.35)] active:scale-95"
               >
-                <Check className="w-4 h-4" />
+                <Check className="w-4 h-4 stroke-[3px]" />
                 <span>Lưu Thay Đổi</span>
               </button>
             </div>
