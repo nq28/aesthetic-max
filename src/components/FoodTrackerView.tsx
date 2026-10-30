@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FoodItem, NutrientDefinition, UserProfile, SmartPlan } from '../types';
 import { geminiService } from '../services/geminiService';
 import { storageService } from '../services/storageService';
@@ -41,7 +41,7 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
   onFoodDeleted,
   currentPlan
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'planner' | 'scanner'>('planner');
+  const [activeSubTab, setActiveSubTab] = useState<'planner' | 'scanner'>('scanner');
   const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('lunch');
   const [description, setDescription] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
@@ -100,6 +100,29 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
   const [viewingItemPhotos, setViewingItemPhotos] = useState<FoodItem | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Clipboard Paste Support (Ctrl+V) for easy photo adding
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+          const file = items[i].getAsFile();
+          if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setImagesPreview(prev => [...prev, reader.result as string].slice(0, 8));
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      }
+    };
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, []);
 
   // Handle multiple image selection (from camera or file picker)
   const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -369,6 +392,7 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                 )}
               </div>
 
+              {/* Hidden Inputs: Gallery Multi-Select & Camera Direct Snap */}
               <input
                 type="file"
                 accept="image/*"
@@ -377,24 +401,39 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                 onChange={handleImagesChange}
                 className="hidden"
               />
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                ref={cameraInputRef}
+                onChange={handleImagesChange}
+                className="hidden"
+              />
 
               {imagesPreview.length === 0 ? (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-white/15 hover:border-emerald-400/50 rounded-2xl p-6 text-center cursor-pointer bg-white/[0.02] hover:bg-white/[0.04] transition-all flex flex-col items-center justify-center gap-2.5 group"
-                >
-                  <div className="flex gap-2.5 text-slate-400 group-hover:scale-105 transition-transform">
-                    <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
-                      <Camera className="w-5 h-5" />
-                    </div>
-                    <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center border border-cyan-500/30">
-                      <Upload className="w-5 h-5" />
-                    </div>
+                <div className="border-2 border-dashed border-white/15 hover:border-emerald-400/50 rounded-2xl p-6 text-center bg-white/[0.02] hover:bg-white/[0.04] transition-all flex flex-col items-center justify-center gap-3.5 group">
+                  <div className="flex flex-wrap items-center justify-center gap-3 w-full">
+                    <button
+                      type="button"
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="flex-1 sm:flex-initial px-4 py-2.5 rounded-2xl liquid-glass-emerald border border-emerald-500/40 text-emerald-300 hover:text-white flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-md active:scale-95"
+                    >
+                      <Camera className="w-4 h-4 text-emerald-400" />
+                      <span>📸 Chụp Ảnh Ngay</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex-1 sm:flex-initial px-4 py-2.5 rounded-2xl liquid-glass-btn border border-cyan-500/40 text-cyan-300 hover:text-white flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-md active:scale-95"
+                    >
+                      <Upload className="w-4 h-4 text-cyan-400" />
+                      <span>🖼️ Chọn Nhiều Ảnh Từ Thư Viện</span>
+                    </button>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-200 font-bold">Chạm để Chụp ảnh hoặc Tải nhiều ảnh món ăn</p>
+                    <p className="text-xs text-slate-200 font-bold">Chạm để Chụp ảnh hoặc Chọn nhiều ảnh món ăn</p>
                     <p className="text-[10px] text-emerald-300/90 font-medium mt-0.5">
-                      💡 Mẹo: Có thể chọn nhiều ảnh (món chính + canh + đồ uống + tráng miệng) để AI gộp chung 1 bữa!
+                      💡 Mẹo: Hỗ trợ chọn nhiều ảnh (món chính + canh + đồ uống + tráng miệng) để AI gộp chung 1 bữa! Hoặc nhấn Ctrl+V để dán ảnh.
                     </p>
                   </div>
                 </div>
@@ -434,17 +473,26 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
 
                     {/* "+ Thêm ảnh" Button Card if less than 8 images */}
                     {imagesPreview.length < 8 && (
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="border-2 border-dashed border-white/20 hover:border-emerald-400/50 rounded-2xl p-4 aspect-video sm:aspect-square flex flex-col items-center justify-center gap-1.5 bg-white/[0.02] hover:bg-white/[0.06] transition text-slate-300 hover:text-emerald-300 group"
-                      >
-                        <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 transition-transform">
-                          <Plus className="w-4 h-4 stroke-[3]" />
-                        </div>
-                        <span className="text-[11px] font-bold">+ Thêm ảnh</span>
-                        <span className="text-[9px] text-slate-400">Canh / Nước / Món phụ</span>
-                      </button>
+                      <div className="grid grid-cols-2 gap-1.5 aspect-video sm:aspect-square">
+                        <button
+                          type="button"
+                          onClick={() => cameraInputRef.current?.click()}
+                          className="border-2 border-dashed border-white/20 hover:border-emerald-400/50 rounded-2xl p-2 flex flex-col items-center justify-center gap-1 bg-white/[0.02] hover:bg-white/[0.06] transition text-slate-300 hover:text-emerald-300 group"
+                          title="Chụp thêm 1 ảnh bằng camera"
+                        >
+                          <Camera className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+                          <span className="text-[10px] font-bold">Chụp thêm</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="border-2 border-dashed border-white/20 hover:border-cyan-400/50 rounded-2xl p-2 flex flex-col items-center justify-center gap-1 bg-white/[0.02] hover:bg-white/[0.06] transition text-slate-300 hover:text-cyan-300 group"
+                          title="Chọn thêm từ thư viện"
+                        >
+                          <Plus className="w-4 h-4 stroke-[3] text-cyan-400 group-hover:scale-110 transition-transform" />
+                          <span className="text-[10px] font-bold">Thư viện</span>
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -452,14 +500,14 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
                   <div className="p-2.5 rounded-xl liquid-glass text-[11px] text-slate-300 flex items-center justify-between border border-emerald-500/20">
                     <span className="flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span>Đã gắn <strong>{imagesPreview.length} bức ảnh</strong>. Gemini AI sẽ tổng hợp toàn bộ các món trong các ảnh.</span>
+                      <span>Đã gắn <strong>{imagesPreview.length} bức ảnh</strong>. Gemini AI sẽ tự động gộp tất cả món ăn trong các ảnh!</span>
                     </span>
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       className="text-emerald-400 hover:text-emerald-300 font-bold shrink-0 text-[10px] ml-2 underline"
                     >
-                      Thêm ảnh nữa
+                      + Thêm ảnh
                     </button>
                   </div>
                 </div>
@@ -480,12 +528,18 @@ export const FoodTrackerView: React.FC<FoodTrackerViewProps> = ({
               {isAnalyzing ? (
                 <>
                   <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
-                  <span>Gemini AI Đang Phân Tích Dinh Dưỡng...</span>
+                  <span>Gemini AI Đang Phân Tích Dinh Dưỡng ({imagesPreview.length} Ảnh)...</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 fill-slate-950 stroke-none" />
-                  <span>Quét Dinh Dưỡng Với Gemini AI</span>
+                  <span>
+                    {imagesPreview.length > 1
+                      ? `Quét & Tổng Hợp Dinh Dưỡng (${imagesPreview.length} Ảnh) Với Gemini AI`
+                      : imagesPreview.length === 1
+                      ? `Quét Dinh Dưỡng (1 Ảnh) Với Gemini AI`
+                      : `Quét Dinh Dưỡng Với Gemini AI`}
+                  </span>
                 </>
               )}
             </button>
