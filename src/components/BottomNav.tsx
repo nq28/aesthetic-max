@@ -22,7 +22,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, is
     <nav className={`${
       isPhoneFrame 
         ? 'absolute bottom-3 inset-x-3' 
-        : 'fixed bottom-4 inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 w-auto min-w-[340px] max-w-md'
+        : 'fixed bottom-[calc(env(safe-area-inset-bottom,0px)+12px)] inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 w-auto min-w-[340px] max-w-md'
     } z-40 transition-all duration-300`}>
       <div className="liquid-glass-dock rounded-[28px] p-1.5 grid grid-cols-5 relative select-none">
         

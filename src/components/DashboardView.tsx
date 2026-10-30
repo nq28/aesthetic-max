@@ -180,76 +180,79 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Top Welcome & Style Banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] px-3 py-1 rounded-full font-bold liquid-pill-active text-emerald-300">
-              {userProfile.age} TUỔI {userProfile.isPuberty ? '• DẬY THÌ TĂNG TRƯỞNG' : '• TRƯỞNG THÀNH'}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full font-bold liquid-pill-active text-emerald-300">
+              {userProfile.age}T {userProfile.isPuberty ? '• DẬY THÌ TĂNG TRƯỞNG' : '• TRƯỞNG THÀNH'}
             </span>
-            <span className="text-[11px] px-3 py-1 rounded-full font-bold liquid-glass-purple text-purple-300">
+            <span className="text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full font-bold liquid-glass-purple text-purple-300">
               {userProfile.aestheticStyle === 'asian_pretty_boy' ? '🌸 PRETTY BOY' : '⚔️ PSL WARRIOR'}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mt-1.5 tracking-tight flex items-center gap-2">
+          <h1 className="text-xl sm:text-3xl font-black text-white mt-1 tracking-tight flex items-center gap-2">
             <span>Hôm nay của bạn</span>
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399] animate-pulse"></span>
           </h1>
         </div>
 
-        {/* Quick Shortcut Buttons */}
-        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+        {/* Quick Shortcut Buttons - 2 Columns on Mobile, Never Wrap Text */}
+        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center">
           <button
             type="button"
             onClick={() => onNavigate('food')}
-            className="flex-1 sm:flex-initial py-2.5 px-4 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 hover:from-emerald-400 hover:to-cyan-300 text-slate-950 font-black rounded-2xl text-xs flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_0_25px_rgba(52,211,153,0.35)] active:scale-95 border border-white/30"
+            className="py-2.5 px-3 sm:px-4 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 hover:from-emerald-400 hover:to-cyan-300 text-slate-950 font-black rounded-2xl text-xs flex items-center justify-center gap-1.5 transition-all duration-300 shadow-[0_0_20px_rgba(52,211,153,0.35)] active:scale-95 border border-white/30 whitespace-nowrap"
           >
-            <Plus className="w-4 h-4 stroke-[3px]" />
-            <span>Quét / Log Bữa Ăn</span>
+            <Plus className="w-4 h-4 stroke-[3px] shrink-0" />
+            <span>Quét Bữa Ăn</span>
           </button>
           <button
             type="button"
             onClick={() => onNavigate('looksmax')}
-            className="flex-1 sm:flex-initial py-2.5 px-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_0_25px_rgba(168,85,247,0.35)] active:scale-95 border border-purple-400/30"
+            className="py-2.5 px-3 sm:px-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-2xl text-xs flex items-center justify-center gap-1.5 transition-all duration-300 shadow-[0_0_20px_rgba(168,85,247,0.35)] active:scale-95 border border-purple-400/30 whitespace-nowrap"
           >
-            <Sparkles className="w-4 h-4 fill-white stroke-none" />
-            <span>Quét Mặt 3 Góc</span>
+            <Sparkles className="w-4 h-4 fill-white stroke-none shrink-0" />
+            <span>Quét Mặt 3D</span>
           </button>
         </div>
       </div>
 
       {/* 1. Daily Streak System & Start Date Milestone Banner */}
-      <div className="liquid-glass-amber rounded-[28px] p-4 sm:p-5 shadow-2xl relative overflow-hidden group">
+      <div className="liquid-glass-amber rounded-[24px] sm:rounded-[28px] p-3.5 sm:p-5 shadow-xl relative overflow-hidden group">
         {/* Ambient Top Glow */}
         <div className="absolute inset-x-8 top-0 h-[1px] bg-gradient-to-r from-transparent via-amber-300/50 to-transparent pointer-events-none"></div>
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 relative z-10">
           
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-400 to-amber-300 flex items-center justify-center text-slate-950 font-black shadow-[0_0_25px_rgba(251,191,36,0.5)] border border-white/40 text-xl group-hover:scale-105 transition-transform shrink-0">
-              🔥
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base font-black text-white tracking-tight">
-                  Chuỗi {streakData.currentStreak} Ngày Liên Tiếp
-                </h3>
-                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-200 font-bold border border-amber-400/40 shadow-[0_0_10px_rgba(251,191,36,0.25)] shrink-0">
-                  Kỷ lục: {streakData.longestStreak} ngày
-                </span>
+          <div className="flex items-center justify-between w-full md:w-auto gap-3 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-400 to-amber-300 flex items-center justify-center text-slate-950 font-black shadow-[0_0_20px_rgba(251,191,36,0.4)] border border-white/40 text-lg sm:text-xl group-hover:scale-105 transition-transform shrink-0">
+                🔥
               </div>
-              <p className="text-xs text-amber-100/80 mt-1 truncate sm:whitespace-normal">
-                Bắt đầu từ <strong>{startDate}</strong> • Đang ở <strong>Ngày thứ {daysElapsed}</strong> lột xác
-              </p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-sm sm:text-base font-black text-white tracking-tight">
+                    Chuỗi {streakData.currentStreak} Ngày
+                  </h3>
+                </div>
+                <p className="text-[11px] sm:text-xs text-amber-100/80 truncate">
+                  Ngày thứ {daysElapsed} • Bắt đầu {startDate}
+                </p>
+              </div>
             </div>
+
+            <span className="text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-200 font-bold border border-amber-400/40 shadow-[0_0_10px_rgba(251,191,36,0.2)] shrink-0 whitespace-nowrap">
+              Kỷ lục: {streakData.longestStreak}n
+            </span>
           </div>
 
           {/* 7-Day Mini Streak Dots */}
-          <div className="flex items-center justify-between w-full md:w-auto gap-1.5 liquid-glass rounded-2xl px-3.5 py-2 border border-white/10 shadow-inner shrink-0">
+          <div className="flex items-center justify-between w-full md:w-auto gap-1 liquid-glass rounded-xl sm:rounded-2xl px-2.5 py-1.5 sm:px-3.5 sm:py-2 border border-white/10 shadow-inner shrink-0">
             {last7Days.map((d, i) => (
               <div key={i} className="flex flex-col items-center flex-1 md:flex-initial">
                 <span className="text-[9px] text-slate-400 font-semibold">{d.dayName}</span>
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs mt-1 font-black transition-all duration-300 ${
+                  className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs mt-0.5 sm:mt-1 font-black transition-all duration-300 ${
                     d.isActive
-                      ? 'bg-gradient-to-tr from-amber-500 to-orange-400 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.6)] scale-105'
+                      ? 'bg-gradient-to-tr from-amber-500 to-orange-400 text-slate-950 shadow-[0_0_10px_rgba(251,191,36,0.6)] scale-105'
                       : 'bg-white/[0.06] text-slate-500 border border-white/[0.08]'
                   }`}
                   title={`${d.dateStr}: ${d.isActive ? 'Đã hoạt động' : 'Chưa ghi nhận'}`}
@@ -263,37 +266,37 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 2. Main Calories & Ring Widget (Flagship Liquid Glass Card) */}
-      <div className="liquid-glass-card rounded-[32px] p-5 sm:p-7 relative overflow-hidden group">
+      {/* 2. Main Calories & Ring Widget (Flagship Liquid Glass Card - Compact Side-by-Side on Mobile) */}
+      <div className="liquid-glass-card rounded-[24px] sm:rounded-[32px] p-4 sm:p-7 relative overflow-hidden group">
         {/* Specular Top Border Light Sheen */}
         <div className="absolute inset-x-12 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none"></div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6">
+        <div className="flex items-center justify-between gap-3 sm:gap-6">
           
           {/* Calorie Stats */}
-          <div className="space-y-3 text-center sm:text-left flex-1 min-w-0 w-full sm:w-auto">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full liquid-glass-btn text-slate-200 text-xs font-semibold whitespace-nowrap shadow-sm">
-              <Flame className="w-4 h-4 text-emerald-400 shadow-[0_0_10px_#34d399] shrink-0" />
-              <span>Năng Lượng Mục Tiêu Mỗi Ngày</span>
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full liquid-glass-btn text-slate-200 text-[10px] sm:text-xs font-semibold whitespace-nowrap shadow-sm">
+              <Flame className="w-3.5 h-3.5 text-emerald-400 shadow-[0_0_8px_#34d399] shrink-0" />
+              <span>Năng Lượng Hôm Nay</span>
             </div>
 
             <div>
-              <div className="flex items-baseline justify-center sm:justify-start gap-2.5">
-                <span className="text-4xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_2px_12px_rgba(255,255,255,0.2)]">
+              <div className="flex items-baseline gap-1.5 sm:gap-2.5">
+                <span className="text-3xl sm:text-5xl font-black text-white tracking-tight drop-shadow-[0_2px_12px_rgba(255,255,255,0.2)]">
                   {totalCalories}
                 </span>
-                <span className="text-sm sm:text-base font-semibold text-slate-400">/ {targetCalories} kcal</span>
+                <span className="text-xs sm:text-base font-semibold text-slate-400">/ {targetCalories} kcal</span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-300/80 mt-1">
-                Còn lại <strong className="text-emerald-300 font-bold drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]">{remainingCalories} kcal</strong> để hoàn thành mục tiêu siết nét.
+              <p className="text-[11px] sm:text-sm text-slate-300/80 mt-0.5">
+                Còn lại <strong className="text-emerald-300 font-bold drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]">{remainingCalories} kcal</strong>
               </p>
             </div>
           </div>
 
-          {/* Radial Calorie Visualizer with Glass Specular Reflection */}
-          <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center shrink-0">
+          {/* Radial Calorie Visualizer with Glass Specular Reflection - Compact 88px on Mobile */}
+          <div className="relative w-24 h-24 sm:w-36 sm:h-36 flex items-center justify-center shrink-0">
             {/* Ambient Behind Glow */}
-            <div className="absolute inset-3 sm:inset-4 rounded-full bg-emerald-500/15 blur-xl"></div>
+            <div className="absolute inset-2 sm:inset-4 rounded-full bg-emerald-500/15 blur-lg"></div>
 
             <svg className="w-full h-full -rotate-90 relative z-10" viewBox="0 0 100 100">
               <defs>
@@ -308,7 +311,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 cy="50"
                 r="41"
                 className="text-white/[0.08]"
-                strokeWidth="9"
+                strokeWidth="10"
                 stroke="currentColor"
                 fill="transparent"
               />
@@ -317,20 +320,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 cy="50"
                 r="41"
                 stroke="url(#calorieGradient)"
-                strokeWidth="9"
+                strokeWidth="10"
                 strokeDasharray="257.6"
                 strokeDashoffset={257.6 - (257.6 * caloriePercent) / 100}
                 strokeLinecap="round"
                 fill="transparent"
-                className="transition-all duration-700 ease-out filter drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]"
+                className="transition-all duration-700 ease-out filter drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]"
               />
             </svg>
 
             <div className="absolute flex flex-col items-center z-20">
-              <span className="text-2xl sm:text-3xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              <span className="text-lg sm:text-2xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                 {caloriePercent}%
               </span>
-              <span className="text-[9px] sm:text-[10px] font-bold text-emerald-300 uppercase tracking-widest mt-0.5">
+              <span className="text-[8px] sm:text-[9px] font-bold text-emerald-300 uppercase tracking-wider">
                 ĐÃ NẠP
               </span>
             </div>

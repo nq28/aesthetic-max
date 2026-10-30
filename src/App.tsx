@@ -215,12 +215,7 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Ambient Fluid Aurora Light Meshes (Provides the colourful backlighting for Liquid Glass) */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-32 -left-32 w-[520px] h-[520px] rounded-full bg-emerald-500/12 blur-[140px] animate-aurora-1"></div>
-        <div className="absolute top-1/3 -right-28 w-[450px] h-[450px] rounded-full bg-cyan-500/10 blur-[150px] animate-aurora-2"></div>
-        <div className="absolute -bottom-20 left-1/4 w-[480px] h-[480px] rounded-full bg-purple-600/10 blur-[160px] animate-pulse-subtle"></div>
-      </div>
+      {/* Note: Static lightweight ambient lighting is handled directly by body CSS background */}
 
       <div className={`relative z-10 flex flex-col min-h-screen transition-all ${
         isPhoneFrame ? 'items-center justify-center p-2 sm:p-6 bg-black/85 min-h-screen' : ''
@@ -284,8 +279,8 @@ export const App: React.FC = () => {
               isPhoneFrame={isPhoneFrame}
             />
 
-            {/* Main Content Area with Bottom Padding for Floating Liquid Dock */}
-            <main className={`flex-1 ${activeTab === 'coach' ? 'max-w-5xl' : 'max-w-4xl'} w-full mx-auto ${isPhoneFrame ? 'p-3 pb-24 overflow-y-auto' : 'p-3 sm:p-6 pb-28 sm:pb-32'} transition-all duration-300`}>
+            {/* Main Content Area with Safe-Area Bottom Padding for Floating Liquid Dock */}
+            <main className={`flex-1 ${activeTab === 'coach' ? 'max-w-5xl' : 'max-w-4xl'} w-full mx-auto ${isPhoneFrame ? 'p-3 pb-24 overflow-y-auto' : 'p-3 sm:p-6 pb-[calc(110px+env(safe-area-inset-bottom,0px))] sm:pb-32'} transition-all duration-300`}>
               <div 
                 key={activeTab} 
                 className={slideDirection === 'left' ? 'animate-liquid-slide-left' : 'animate-liquid-slide-right'}

@@ -18,7 +18,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   isPhoneFrame 
 }) => {
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-2xl bg-[#05070b]/60 border-b border-white/[0.08] px-4 py-3 shadow-[0_4px_30px_rgba(0,0,0,0.3)] transition-all duration-300">
+    <header className={`sticky top-0 z-40 backdrop-blur-2xl bg-[#05070b]/70 border-b border-white/[0.08] px-4 shadow-[0_4px_30px_rgba(0,0,0,0.3)] transition-all duration-300 ${
+      isPhoneFrame ? 'py-3' : 'pt-[calc(env(safe-area-inset-top,0px)+12px)] pb-3'
+    }`}>
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         
         {/* Brand */}
