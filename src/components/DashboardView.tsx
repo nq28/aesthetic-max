@@ -325,7 +325,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 strokeDashoffset={257.6 - (257.6 * caloriePercent) / 100}
                 strokeLinecap="round"
                 fill="transparent"
-                className="transition-all duration-700 ease-out filter drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]"
+                className="transition-all duration-700 ease-out"
               />
             </svg>
 
